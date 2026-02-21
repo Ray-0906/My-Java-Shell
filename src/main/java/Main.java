@@ -69,6 +69,9 @@ public class Main {
                     break;
                 case "exit":
                     System.exit(0);
+                case "pwd":
+                    System.out.println(System.getProperty("user.dir"));
+                    break;    
 
                 case "type":
                     String typeString = input.substring(5);
