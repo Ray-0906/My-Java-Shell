@@ -23,6 +23,32 @@ public class Main {
         }
         System.out.println(res);
     }
+    boolean isExecutable(String path) {
+        File file = new File(path);
+        return file.exists() && file.canExecute();
+    }
+    
+    static void exechandler(String input) {
+         String[] args= input.split(" ");
+         String comString = args[0];   
+        for(String path: System.getenv("PATH").split(":")){
+            File file = new File(path + "/" +comString);
+            if(file.exists() && file.canExecute()){
+                args[0] = file.getAbsolutePath();
+                try {
+                    ProcessBuilder pb = new ProcessBuilder(args);
+                    pb.inheritIO();
+                    Process process = pb.start();
+                    process.waitFor();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+          System.out.println(input + ": command not found");
+
+    }
    
 
     
@@ -48,7 +74,8 @@ public class Main {
                     typeHandler(typeString);
                     break;
                 default:
-                    System.out.println(input + ": command not found");
+                    // System.out.println(input + ": command not found");
+                    exechandler(input);
                     break;
             }
 
