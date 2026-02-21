@@ -34,9 +34,10 @@ public class Main {
         for(String path: System.getenv("PATH").split(":")){
             File file = new File(path + "/" +comString);
             if(file.exists() && file.canExecute()){
-                args[0] = file.getAbsolutePath();
+                // args[0] = file.getAbsolutePath();
                 try {
                     ProcessBuilder pb = new ProcessBuilder(args);
+                    pb.directory(new File(path));
                     pb.inheritIO();
                     Process process = pb.start();
                     process.waitFor();
