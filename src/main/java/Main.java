@@ -12,7 +12,7 @@ public class Main {
              res = typeString + " is a shell builtin";
         } else {
            
-            for(String path: System.getenv().get("PATH").split(":")){
+            for(String path: System.getenv("PATH").split(":")){
                 File file = new File(path + "/" +typeString);
                 if(file.exists() && file.canExecute()){
                     res =  typeString+" is " +file.getAbsolutePath();
