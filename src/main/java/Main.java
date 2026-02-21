@@ -25,7 +25,7 @@ public class Main {
                         typeString=typeString+": command not found";
                     }
                     else{
-                        typeString=typeString+": is a shell builtin";
+                        typeString=typeString+" is a shell builtin";
                     }
                     System.out.println(typeString);
                     break;    
