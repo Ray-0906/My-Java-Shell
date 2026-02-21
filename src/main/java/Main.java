@@ -3,7 +3,7 @@ import java.util.List;
 import java.util.Scanner;
  
 public class Main {
-    public static List<String> comList = List.of("echo", "exit", "type");
+    public static List<String> comList = List.of("echo", "exit", "type", "pwd");
      
     static void typeHandler(String typeString) {
         // String typeString=input.substring(5);
