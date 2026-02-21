@@ -70,7 +70,7 @@ public class Main {
                 case "exit":
                     System.exit(0);
                 case "pwd":
-                    System.out.println(System.getProperty("user.dir"));
+                    System.out.println(new File("").getAbsolutePath());
                     break;    
 
                 case "type":
