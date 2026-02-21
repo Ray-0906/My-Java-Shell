@@ -22,7 +22,7 @@ public class Main {
                 case "type":
                     String typeString=input.substring(5);
                     if(!comList.contains(typeString)){
-                        typeString=typeString+": command not found";
+                        typeString=typeString+": not found";
                     }
                     else{
                         typeString=typeString+" is a shell builtin";
