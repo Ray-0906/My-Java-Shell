@@ -13,8 +13,9 @@ public class Main {
         } else {
            
             for(String path: System.getenv().get("PATH").split(":")){
-                if(isExec(path, typeString)){
-                    res =  typeString+" is " +path + "/" + typeString;
+                File file = new File(path + "/" +typeString);
+                if(file.exists() && file.canExecute()){
+                    res =  typeString+" is " +file.getAbsolutePath();
                     break;
                 }
             }
@@ -22,10 +23,7 @@ public class Main {
         }
         System.out.println(res);
     }
-    static boolean isExec(String pat, String comString) {
-        File file = new File(pat + "/" + comString);
-        return file.exists() && file.canExecute();
-    }
+   
 
     
 
