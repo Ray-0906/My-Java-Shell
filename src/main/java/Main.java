@@ -65,13 +65,15 @@ public class Main {
         } else if (path.startsWith("/")) {
             Path newPath = Paths.get(path);
             if (newPath.toFile().exists() && newPath.toFile().isDirectory()) {
+
                 currentDir = newPath;
             } else {
                 System.out.println("cd: " + path + ": No such file or directory");
             }
         }
+      
         else {
-            Path newPath = currentDir.resolve(path);
+            Path newPath = currentDir.resolve(path).normalize();
             if (newPath.toFile().exists() && newPath.toFile().isDirectory()) {
                 currentDir = newPath;
             } else {
