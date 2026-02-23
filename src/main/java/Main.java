@@ -62,7 +62,8 @@ public class Main {
     static void cdHandler(String input) {
         String path = input.substring(3);
         if (path.equals("~")) {
-            currentDir = homeDir;
+            currentDir =  Paths.get(System.getenv("HOME"));
+            
         } else if (path.startsWith("/")) {
             Path newPath = Paths.get(path).normalize();
             if (Files.isDirectory(newPath)) {
