@@ -45,7 +45,7 @@ public class Main {
                 // args[0] = file.getAbsolutePath();
                 try {
                     ProcessBuilder pb = new ProcessBuilder(args);
-                    pb.directory(new File(path));
+                    pb.directory(currentDir.toFile());
                     pb.inheritIO();
                     Process process = pb.start();
                     process.waitFor();
@@ -60,10 +60,18 @@ public class Main {
     }
 
     static void cdHandler(String input) {
-        String path = input.substring(3);
+        String[] parts = input.split(" ", 2);
+        String path = parts.length > 1 ? parts[1] : "";
         if (path.equals("~")) {
-            currentDir =  Paths.get(System.getenv("HOME"));
-            
+            currentDir = Paths.get(System.getenv("HOME"));
+
+        } else if (path.startsWith("~/")) {
+            Path newPath = homeDir.resolve(path.substring(2)).normalize();
+            if (Files.isDirectory(newPath)) {
+                currentDir = newPath;
+            } else {
+                System.out.println("cd: " + path + ": No such file or directory");
+            }
         } else if (path.startsWith("/")) {
             Path newPath = Paths.get(path).normalize();
             if (Files.isDirectory(newPath)) {
@@ -85,11 +93,39 @@ public class Main {
 
     }
 
+    static List<String> parseCommand(String input) {
+        // This method can be used to parse the input command into a list of arguments
+        // For simplicity, we are just splitting by space here, but you can enhance it
+        // to handle quotes, etc.
+        List<String> tokens = new java.util.ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inSingleQuote = false;
+        for (char c : input.toCharArray()) {
+            if (c == '\'' || c == '\'') {
+                inSingleQuote = !inSingleQuote;
+                continue;
+                // Handle quoted strings if needed
+            }
+             else if(c==' ' && !inSingleQuote){
+                if (current.length() > 0) {
+                    tokens.add(current.toString());
+                    current.setLength(0);
+                }
+             }
+             else {
+                current.append(c);
+             }
+        }
+        if ( current.length()>0) {
+            tokens.add(current.toString());
+        }
+        return tokens;
+    }
+
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
 
         currentDir = Paths.get(System.getProperty("user.dir"));
-        ;
         homeDir = Paths.get(System.getProperty("user.home")).toAbsolutePath();
         while (true) {
             System.out.print("$ ");
@@ -100,7 +136,8 @@ public class Main {
             switch (comString) {
                 case "echo":
                     String echoString = input.substring(5);
-                    System.out.println(echoString);
+                    String parsed = parseCommand(input).stream().skip(1).reduce((a, b) -> a + "" + b).orElse("");
+                    System.out.println(parsed);
                     break;
                 case "exit":
                     System.exit(0);
