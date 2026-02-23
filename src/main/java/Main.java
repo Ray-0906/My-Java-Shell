@@ -1,4 +1,5 @@
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -63,18 +64,18 @@ public class Main {
         if (path.equals("~")) {
             currentDir = homeDir;
         } else if (path.startsWith("/")) {
-            Path newPath = Paths.get(path);
-            if (newPath.toFile().exists() && newPath.toFile().isDirectory()) {
+            Path newPath = Paths.get(path).normalize();
+            if (Files.isDirectory(newPath)) {
 
                 currentDir = newPath;
             } else {
                 System.out.println("cd: " + path + ": No such file or directory");
             }
         }
-      
+
         else {
             Path newPath = currentDir.resolve(path).normalize();
-            if (newPath.toFile().exists() && newPath.toFile().isDirectory()) {
+            if (Files.isDirectory(newPath)) {
                 currentDir = newPath;
             } else {
                 System.out.println("cd: " + path + ": No such file or directory");
