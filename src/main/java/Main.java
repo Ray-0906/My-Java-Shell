@@ -60,14 +60,16 @@ public class Main {
 
         try {
             ProcessBuilder pb = new ProcessBuilder(args);
+             pb.directory(currentDir.toFile());
             if(outFileString!=null){
                 pb.redirectOutput(new File(outFileString));
-                pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                
             }
             else{
-                pb.inheritIO();
+                pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+               
             }
-            pb.directory(currentDir.toFile());
+           pb.redirectError(ProcessBuilder.Redirect.INHERIT);
             
             Process process = pb.start();
             process.waitFor();
