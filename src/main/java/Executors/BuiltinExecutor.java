@@ -42,6 +42,7 @@ public class BuiltinExecutor {
 
     public void execute(Command command) {
         String name = command.getArgs().get(0);
+        // Ensure that redirect files exist before executing the command
         ensureRedirectFiles(command);
         switch (name) {
             case "echo" -> EchoCommand.execute(command);

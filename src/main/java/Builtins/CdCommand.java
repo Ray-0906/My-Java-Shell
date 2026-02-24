@@ -10,6 +10,17 @@ import java.util.List;
 import Model.Command;
 
 public class CdCommand {
+    static void printError(String path,Command command) {
+        if(command.getStderrRedirect() != null) {
+            try {
+                Files.writeString(Paths.get(command.getStderrRedirect()), "cd: " + path + ": No such file or directory" + System.lineSeparator());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else{
+            System.out.println("cd: " + path + ": No such file or directory");
+        }
+    }
     public static void execute(Command command) {
         Path currentDir = ShellContext.getCurrentDir();
         Path homeDir = Paths.get(System.getenv("HOME"));
@@ -27,7 +38,7 @@ public class CdCommand {
             if (Files.isDirectory(newPath)) {
                 currentDir = newPath;
             } else {
-                System.out.println("cd: " + path + ": No such file or directory");
+                printError(path, command);
             }
         } else if (path.startsWith("/")) {
             // Absolute path
@@ -35,7 +46,7 @@ public class CdCommand {
             if (Files.isDirectory(newPath)) {
                 currentDir = newPath;
             } else {
-                System.out.println("cd: " + path + ": No such file or directory");
+                printError(path, command);
             }
         }
 
@@ -45,7 +56,7 @@ public class CdCommand {
             if (Files.isDirectory(newPath)) {
                 currentDir = newPath;
             } else {
-                System.out.println("cd: " + path + ": No such file or directory");
+                printError(path, command);
             }
         }
         // Update the shell context with the new current directory if any error occurs, the current directory remains unchanged
