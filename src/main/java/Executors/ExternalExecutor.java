@@ -6,9 +6,12 @@ import java.io.File;
 
 public class ExternalExecutor {
     private static ExternalExecutor instance = null;
-    private ExternalExecutor() {}
+
+    private ExternalExecutor() {
+    }
+
     public static ExternalExecutor getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new ExternalExecutor();
         }
         return instance;
@@ -24,9 +27,11 @@ public class ExternalExecutor {
             } else {
                 pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             }
-
-            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
+            if (command.getStderrRedirect() != null) {
+                pb.redirectError(new File(command.getStderrRedirect()));
+            } else {
+                pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+            }
             Process process = pb.start();
             process.waitFor();
 
