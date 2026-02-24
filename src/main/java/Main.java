@@ -136,7 +136,7 @@ public class Main {
             switch (comString) {
                 case "echo":
                     String echoString = input.substring(5);
-                    String parsed = parseCommand(input).stream().skip(1).reduce((a, b) -> a + "" + b).orElse("");
+                    String parsed = parseCommand(input).stream().skip(1).reduce((a, b) -> a + " " + b).orElse("");
                     System.out.println(parsed);
                     break;
                 case "exit":
