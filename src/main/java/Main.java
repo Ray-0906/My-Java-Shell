@@ -41,38 +41,36 @@ public class Main {
         if (tokens.isEmpty())
             return;
 
-        String outFileString=null;
+        String outFileString = null;
 
-        for(int i=0;i<tokens.size();i++){
-            if(tokens.get(i).equals(">") ||  tokens.get(i).equals("1>")){
-                if(i+1>=tokens.size()){
+        for (int i = 0; i < tokens.size(); i++) {
+            if (tokens.get(i).equals(">") || tokens.get(i).equals("1>")) {
+                if (i + 1 >= tokens.size()) {
                     System.out.println("Syntax error: expected file after " + tokens.get(i));
                     return;
                 }
-                outFileString=tokens.get(i+1);
-                tokens.remove(i+1);
+                outFileString = tokens.get(i + 1);
+                tokens.remove(i + 1);
                 tokens.remove(i);
                 break;
             }
         }
 
-        String[] args = tokens.toArray(new String[0]);
-
         try {
-            ProcessBuilder pb = new ProcessBuilder(args);
-             pb.directory(currentDir.toFile());
-            if(outFileString!=null){
+            ProcessBuilder pb = new ProcessBuilder(tokens);
+            pb.directory(currentDir.toFile());
+
+            if (outFileString != null) {
                 pb.redirectOutput(new File(outFileString));
-                
-            }
-            else{
+            } else {
                 pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-               
             }
-           pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-            
+
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
             Process process = pb.start();
             process.waitFor();
+
         } catch (Exception e) {
             System.out.println(tokens.get(0) + ": command not found");
         }
@@ -173,7 +171,7 @@ public class Main {
 
             if (tokens.isEmpty())
                 continue;
-    
+
             String comString = tokens.get(0);
 
             switch (comString) {
