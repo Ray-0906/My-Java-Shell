@@ -93,34 +93,34 @@ public class Main {
 
     }
 
-    static List<String> parseCommand(String input) {
-        // This method can be used to parse the input command into a list of arguments
-        // For simplicity, we are just splitting by space here, but you can enhance it
-        // to handle quotes, etc.
-        List<String> tokens = new java.util.ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        boolean inSingleQuote = false;
-        for (char c : input.toCharArray()) {
-            if (c == '\'' || c == '\'') {
-                inSingleQuote = !inSingleQuote;
-                continue;
-                // Handle quoted strings if needed
+   static List<String> parseInput(String input) {
+    List<String> tokens = new java.util.ArrayList<>();
+    StringBuilder current = new StringBuilder();
+    boolean inSingleQuote = false;
+
+    for (int i = 0; i < input.length(); i++) {
+        char c = input.charAt(i);
+
+        if (c == '\'') {
+            inSingleQuote = !inSingleQuote;
+        } 
+        else if (Character.isWhitespace(c) && !inSingleQuote) {
+            if (current.length() > 0) {
+                tokens.add(current.toString());
+                current.setLength(0);
             }
-             else if(c==' ' && !inSingleQuote){
-                if (current.length() > 0) {
-                    tokens.add(current.toString());
-                    current.setLength(0);
-                }
-             }
-             else {
-                current.append(c);
-             }
+        } 
+        else {
+            current.append(c);
         }
-        if ( current.length()>0) {
-            tokens.add(current.toString());
-        }
-        return tokens;
     }
+
+    if (current.length() > 0) {
+        tokens.add(current.toString());
+    }
+
+    return tokens;
+}
 
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
@@ -136,7 +136,7 @@ public class Main {
             switch (comString) {
                 case "echo":
                     String echoString = input.substring(5);
-                    String parsed = parseCommand(input).stream().skip(1).reduce((a, b) -> a + " " + b).orElse("");
+                    String parsed = parseInput(input).stream().skip(1).reduce((a, b) -> a + " " + b).orElse("");
                     System.out.println(parsed);
                     break;
                 case "exit":
