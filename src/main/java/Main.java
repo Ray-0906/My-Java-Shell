@@ -41,12 +41,34 @@ public class Main {
         if (tokens.isEmpty())
             return;
 
+        String outFileString=null;
+
+        for(int i=0;i<tokens.size();i++){
+            if(tokens.get(i).equals(">") ||  tokens.get(i).equals("1>")){
+                if(i+1>=tokens.size()){
+                    System.out.println("Syntax error: expected file after " + tokens.get(i));
+                    return;
+                }
+                outFileString=tokens.get(i+1);
+                tokens.remove(i+1);
+                tokens.remove(i);
+                break;
+            }
+        }
+
         String[] args = tokens.toArray(new String[0]);
 
         try {
             ProcessBuilder pb = new ProcessBuilder(args);
+            if(outFileString!=null){
+                pb.redirectOutput(new File(outFileString));
+                pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+            }
+            else{
+                pb.inheritIO();
+            }
             pb.directory(currentDir.toFile());
-            pb.inheritIO();
+            
             Process process = pb.start();
             process.waitFor();
         } catch (Exception e) {
@@ -96,14 +118,14 @@ public class Main {
         boolean inDoubleQuote = false;
         boolean isbackslash = false;
 
-
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
 
             // Handle single quote
             if (isbackslash) {
                 current.append(c);
-                isbackslash = false; continue;
+                isbackslash = false;
+                continue;
             }
             if (c == '\\' && !inSingleQuote) {
                 isbackslash = true;
@@ -145,11 +167,16 @@ public class Main {
             System.out.print("$ ");
             Scanner scanner = new Scanner(System.in);
             String input = scanner.nextLine();
-            String comString = input.split(" ")[0];
+            List<String> tokens = parseInput(input);
+
+            if (tokens.isEmpty())
+                continue;
+    
+            String comString = tokens.get(0);
 
             switch (comString) {
                 case "echo":
-                    String echoString = input.substring(5);
+                    // String echoString = input.substring(5);
                     String parsed = parseInput(input).stream().skip(1).reduce((a, b) -> a + " " + b).orElse("");
                     System.out.println(parsed);
                     break;
