@@ -36,29 +36,22 @@ public class Main {
         return file.exists() && file.canExecute();
     }
 
-    static void exechandler(String input) {
-        String[] args = input.split(" ");
-        String comString = args[0];
-        for (String path : System.getenv("PATH").split(":")) {
-            File file = new File(path + "/" + comString);
-            if (file.exists() && file.canExecute()) {
-                // args[0] = file.getAbsolutePath();
-                try {
-                    ProcessBuilder pb = new ProcessBuilder(args);
-                    pb.directory(currentDir.toFile());
-                    pb.inheritIO();
-                    Process process = pb.start();
-                    process.waitFor();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return;
-            }
-        }
-        System.out.println(input + ": command not found");
+   static void exechandler(String input) {
+    List<String> tokens = parseInput(input);
+    if (tokens.isEmpty()) return;
 
+    String[] args = tokens.toArray(new String[0]);
+
+    try {
+        ProcessBuilder pb = new ProcessBuilder(args);
+        pb.directory(currentDir.toFile());
+        pb.inheritIO();
+        Process process = pb.start();
+        process.waitFor();
+    } catch (Exception e) {
+        System.out.println(tokens.get(0) + ": command not found");
     }
-
+}
     static void cdHandler(String input) {
         String[] parts = input.split(" ", 2);
         String path = parts.length > 1 ? parts[1] : "";
@@ -93,34 +86,32 @@ public class Main {
 
     }
 
-   static List<String> parseInput(String input) {
-    List<String> tokens = new java.util.ArrayList<>();
-    StringBuilder current = new StringBuilder();
-    boolean inSingleQuote = false;
+    static List<String> parseInput(String input) {
+        List<String> tokens = new java.util.ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inSingleQuote = false;
 
-    for (int i = 0; i < input.length(); i++) {
-        char c = input.charAt(i);
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
 
-        if (c == '\'') {
-            inSingleQuote = !inSingleQuote;
-        } 
-        else if (Character.isWhitespace(c) && !inSingleQuote) {
-            if (current.length() > 0) {
-                tokens.add(current.toString());
-                current.setLength(0);
+            if (c == '\'') {
+                inSingleQuote = !inSingleQuote;
+            } else if (Character.isWhitespace(c) && !inSingleQuote) {
+                if (current.length() > 0) {
+                    tokens.add(current.toString());
+                    current.setLength(0);
+                }
+            } else {
+                current.append(c);
             }
-        } 
-        else {
-            current.append(c);
         }
-    }
 
-    if (current.length() > 0) {
-        tokens.add(current.toString());
-    }
+        if (current.length() > 0) {
+            tokens.add(current.toString());
+        }
 
-    return tokens;
-}
+        return tokens;
+    }
 
     public static void main(String[] args) throws Exception {
         // TODO: Uncomment the code below to pass the first stage
