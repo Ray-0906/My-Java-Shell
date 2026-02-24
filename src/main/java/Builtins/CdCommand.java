@@ -11,17 +11,7 @@ import IO.ShellIo;
 import Model.Command;
 
 public class CdCommand {
-    // static void printError(String path,Command command) {
-    //     if(command.getStderrRedirect() != null) {
-    //         try {
-    //             Files.writeString(Paths.get(command.getStderrRedirect()), "cd: " + path + ": No such file or directory" + System.lineSeparator());
-    //         } catch (Exception e) {
-    //             e.printStackTrace();
-    //         }
-    //     } else{
-    //         System.out.println("cd: " + path + ": No such file or directory");
-    //     }
-    // }
+   
     public static void execute(Command command, ShellIo io) {
         Path currentDir = ShellContext.getCurrentDir();
         Path homeDir = Paths.get(System.getenv("HOME"));

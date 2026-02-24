@@ -27,16 +27,6 @@ public class TypeCommand {
             }
         }
          io.println(res);
-        // try {
-        //     if (command.getStdoutRedirect() != null) {
-        //         try (java.io.FileWriter fw = new java.io.FileWriter(command.getStdoutRedirect(),command.isStdoutAppend())) {
-        //             fw.write(res + System.lineSeparator());
-        //         }
-        //     } else {
-        //         System.out.println(res);
-        //     }
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
+      
     }
 }

@@ -4,8 +4,6 @@ import Model.Command;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import Builtins.CdCommand;
@@ -32,20 +30,9 @@ public class BuiltinExecutor {
         return List.of("echo", "cd", "pwd", "type", "exit").contains(name);
     }
 
-    private void ensureRedirectFiles(Command command) {
-        try {
-            if (command.getStdoutRedirect() != null) {
-                new File(command.getStdoutRedirect()).createNewFile();
-            }
-            if (command.getStderrRedirect() != null) {
-                new File(command.getStderrRedirect()).createNewFile();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     private ShellIo prepareIO(Command command) throws Exception {
+        // Prepare the output streams based on redirection
         PrintStream out;
         PrintStream err;
 
@@ -72,6 +59,7 @@ public class BuiltinExecutor {
     }
 
     private void closeIo(ShellIo io) {
+        // Close the streams if they are not the standard ones
         if (io.getStdout() != System.out) {
             io.getStdout().close();
         }
@@ -83,7 +71,7 @@ public class BuiltinExecutor {
     public void execute(Command command) {
         try {
 
-        
+        // Prepare IO streams based on redirection
             ShellIo io = prepareIO(command);
             String name = command.getArgs().get(0);
 
