@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 
+
 public class Main {
 
     static Path currentDir;
@@ -159,46 +160,47 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+         new Shell().run();
         // TODO: Uncomment the code below to pass the first stage
 
-        currentDir = Paths.get(System.getProperty("user.dir"));
-        homeDir = Paths.get(System.getProperty("user.home")).toAbsolutePath();
-        while (true) {
-            System.out.print("$ ");
-            Scanner scanner = new Scanner(System.in);
-            String input = scanner.nextLine();
-            List<String> tokens = parseInput(input);
+        // currentDir = Paths.get(System.getProperty("user.dir"));
+        // homeDir = Paths.get(System.getProperty("user.home")).toAbsolutePath();
+        // while (true) {
+        //     System.out.print("$ ");
+        //     Scanner scanner = new Scanner(System.in);
+        //     String input = scanner.nextLine();
+        //     List<String> tokens = parseInput(input);
 
-            if (tokens.isEmpty())
-                continue;
+        //     if (tokens.isEmpty())
+        //         continue;
 
-            String comString = tokens.get(0);
+        //     String comString = tokens.get(0);
 
-            switch (comString) {
-                case "echo":
-                    // String echoString = input.substring(5);
-                    String parsed = parseInput(input).stream().skip(1).reduce((a, b) -> a + " " + b).orElse("");
-                    System.out.println(parsed);
-                    break;
-                case "exit":
-                    System.exit(0);
-                case "pwd":
-                    System.out.println(currentDir.toAbsolutePath().toString());
-                    break;
+        //     switch (comString) {
+        //         case "echo":
+        //             // String echoString = input.substring(5);
+        //             String parsed = parseInput(input).stream().skip(1).reduce((a, b) -> a + " " + b).orElse("");
+        //             System.out.println(parsed);
+        //             break;
+        //         case "exit":
+        //             System.exit(0);
+        //         case "pwd":
+        //             System.out.println(currentDir.toAbsolutePath().toString());
+        //             break;
 
-                case "type":
-                    String typeString = input.substring(5);
-                    typeHandler(typeString);
-                    break;
-                case "cd":
-                    cdHandler(input);
-                    break;
-                default:
-                    // System.out.println(input + ": command not found");
-                    exechandler(input);
-                    break;
-            }
+        //         case "type":
+        //             String typeString = input.substring(5);
+        //             typeHandler(typeString);
+        //             break;
+        //         case "cd":
+        //             cdHandler(input);
+        //             break;
+        //         default:
+        //             // System.out.println(input + ": command not found");
+        //             exechandler(input);
+        //             break;
+        //     }
 
-        }
+        
     }
 }
