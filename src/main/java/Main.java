@@ -36,22 +36,24 @@ public class Main {
         return file.exists() && file.canExecute();
     }
 
-   static void exechandler(String input) {
-    List<String> tokens = parseInput(input);
-    if (tokens.isEmpty()) return;
+    static void exechandler(String input) {
+        List<String> tokens = parseInput(input);
+        if (tokens.isEmpty())
+            return;
 
-    String[] args = tokens.toArray(new String[0]);
+        String[] args = tokens.toArray(new String[0]);
 
-    try {
-        ProcessBuilder pb = new ProcessBuilder(args);
-        pb.directory(currentDir.toFile());
-        pb.inheritIO();
-        Process process = pb.start();
-        process.waitFor();
-    } catch (Exception e) {
-        System.out.println(tokens.get(0) + ": command not found");
+        try {
+            ProcessBuilder pb = new ProcessBuilder(args);
+            pb.directory(currentDir.toFile());
+            pb.inheritIO();
+            Process process = pb.start();
+            process.waitFor();
+        } catch (Exception e) {
+            System.out.println(tokens.get(0) + ": command not found");
+        }
     }
-}
+
     static void cdHandler(String input) {
         String[] parts = input.split(" ", 2);
         String path = parts.length > 1 ? parts[1] : "";
@@ -89,19 +91,30 @@ public class Main {
     static List<String> parseInput(String input) {
         List<String> tokens = new java.util.ArrayList<>();
         StringBuilder current = new StringBuilder();
+
         boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
 
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
 
-            if (c == '\'') {
+            // Handle single quote
+            if (c == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
-            } else if (Character.isWhitespace(c) && !inSingleQuote) {
+            }
+            // Handle double quote
+            else if (c == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
+            }
+            // Handle whitespace (only if outside quotes)
+            else if (Character.isWhitespace(c) && !inSingleQuote && !inDoubleQuote) {
                 if (current.length() > 0) {
                     tokens.add(current.toString());
                     current.setLength(0);
                 }
-            } else {
+            }
+            // Normal character
+            else {
                 current.append(c);
             }
         }
