@@ -3,9 +3,10 @@ package Builtins;
 import java.io.File;
 
 import Executors.BuiltinExecutor;
+import IO.ShellIo;
 import Model.Command;
 public class TypeCommand {
-    public static void execute(Command command) {
+    public static void execute(Command command,ShellIo io) {
         BuiltinExecutor builtinExecutor = BuiltinExecutor.getInstance();
 
         String name = command.getArgs().size() > 1
@@ -25,17 +26,17 @@ public class TypeCommand {
                 }
             }
         }
-
-        try {
-            if (command.getStdoutRedirect() != null) {
-                try (java.io.FileWriter fw = new java.io.FileWriter(command.getStdoutRedirect(),command.isStdoutAppend())) {
-                    fw.write(res + System.lineSeparator());
-                }
-            } else {
-                System.out.println(res);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+         io.println(res);
+        // try {
+        //     if (command.getStdoutRedirect() != null) {
+        //         try (java.io.FileWriter fw = new java.io.FileWriter(command.getStdoutRedirect(),command.isStdoutAppend())) {
+        //             fw.write(res + System.lineSeparator());
+        //         }
+        //     } else {
+        //         System.out.println(res);
+        //     }
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
     }
 }

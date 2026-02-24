@@ -5,9 +5,10 @@ import java.util.List;
 import Model.Command;
 
 public class CommandParser {
-    
+
     public static Command parse(List<String> tokens) {
-         if (tokens == null || tokens.isEmpty()) return null;
+        if (tokens == null || tokens.isEmpty())
+            return null;
 
         String stdout = null;
         boolean append = false;
@@ -22,15 +23,13 @@ public class CommandParser {
                 tokens.remove(i + 1);
                 tokens.remove(i);
                 i--;
-            }
-            else if (t.equals(">>") || t.equals("1>>")) {
+            } else if (t.equals(">>") || t.equals("1>>")) {
                 stdout = tokens.get(i + 1);
                 append = true;
                 tokens.remove(i + 1);
                 tokens.remove(i);
                 i--;
-            }
-            else if (t.equals("2>")) {
+            } else if (t.equals("2>")) {
                 stderr = tokens.get(i + 1);
                 tokens.remove(i + 1);
                 tokens.remove(i);
