@@ -94,11 +94,21 @@ public class Main {
 
         boolean inSingleQuote = false;
         boolean inDoubleQuote = false;
+        boolean isbackslash = false;
+
 
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
 
             // Handle single quote
+            if (isbackslash) {
+                current.append(c);
+                isbackslash = false; continue;
+            }
+            if (c == '\\' && !inSingleQuote) {
+                isbackslash = true;
+                continue;
+            }
             if (c == '\'' && !inDoubleQuote) {
                 inSingleQuote = !inSingleQuote;
             }
