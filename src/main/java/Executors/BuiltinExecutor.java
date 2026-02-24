@@ -48,7 +48,8 @@ public class BuiltinExecutor {
 
         // STDERR
         if (command.getStderrRedirect() != null) {
-            FileOutputStream fos = new FileOutputStream(command.getStderrRedirect());
+            FileOutputStream fos = new FileOutputStream(command.getStderrRedirect(),
+                    command.isStderrAppend());
             err = new PrintStream(fos);
         } else {
             err = System.err;

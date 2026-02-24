@@ -21,10 +21,10 @@ public class ExternalExecutor {
         try {
             ProcessBuilder pb = new ProcessBuilder(command.getArgs());
             pb.directory(ShellContext.getCurrentDir().toFile());
-      // Handle stdout and stderr redirection
+            // Handle stdout and stderr redirection
             if (command.getStdoutRedirect() != null) {
                 File file = new File(command.getStdoutRedirect());
-    
+
                 if (command.isStdoutAppend()) {
                     pb.redirectOutput(ProcessBuilder.Redirect.appendTo(file));
                 } else {
@@ -33,9 +33,15 @@ public class ExternalExecutor {
             } else {
                 pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             }
-
+            // Handle stderr redirection
             if (command.getStderrRedirect() != null) {
-                pb.redirectError(new File(command.getStderrRedirect()));
+                File file = new File(command.getStderrRedirect());
+                if (command.isStderrAppend()) {
+                    pb.redirectError(ProcessBuilder.Redirect.appendTo(file));
+                } else {
+                    pb.redirectError(file);
+                }
+
             } else {
                 pb.redirectError(ProcessBuilder.Redirect.INHERIT);
             }

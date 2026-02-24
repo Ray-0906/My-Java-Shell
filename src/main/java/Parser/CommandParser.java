@@ -13,6 +13,7 @@ public class CommandParser {
         String stdout = null;
         boolean append = false;
         String stderr = null;
+        boolean stderrAppend = false;
 
         for (int i = 0; i < tokens.size(); i++) {
             String t = tokens.get(i);
@@ -35,8 +36,15 @@ public class CommandParser {
                 tokens.remove(i);
                 i--;
             }
+            else if (t.equals("2>>")) {
+                stderr = tokens.get(i + 1);
+                stderrAppend = true;
+                tokens.remove(i + 1);
+                tokens.remove(i);
+                i--;
+            }
         }
 
-        return new Command(tokens, stdout, append, stderr);
+        return new Command(tokens, stdout, append, stderr, stderrAppend);
     }
 }
