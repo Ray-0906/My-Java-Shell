@@ -12,8 +12,11 @@ public class EchoCommand {
         if (command.getStdoutRedirect() != null) {
             // Write the output to the specified file instead of printing to console
             try (FileWriter fw =
-                     new FileWriter(command.getStdoutRedirect())) {
-                fw.write(output + System.lineSeparator());
+                     new FileWriter(command.getStdoutRedirect(),command.isStdoutAppend())) {
+                      
+                             fw.write(output + System.lineSeparator());
+                        
+                   
             } catch (Exception e) {
                 e.printStackTrace();
             }

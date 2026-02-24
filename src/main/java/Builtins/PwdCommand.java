@@ -8,7 +8,7 @@ public class PwdCommand {
     public static void execute(Command command) {
          String redirectFile = command.getStdoutRedirect();
         if (redirectFile != null) {
-            try(FileWriter fw = new FileWriter(redirectFile)) {
+            try(FileWriter fw = new FileWriter(redirectFile,command.isStdoutAppend())) {
                 fw.write(ShellContext.getCurrentDir().toString() + System.lineSeparator());
                   
             } catch (Exception e) {

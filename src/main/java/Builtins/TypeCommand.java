@@ -28,7 +28,7 @@ public class TypeCommand {
 
         try {
             if (command.getStdoutRedirect() != null) {
-                try (java.io.FileWriter fw = new java.io.FileWriter(command.getStdoutRedirect())) {
+                try (java.io.FileWriter fw = new java.io.FileWriter(command.getStdoutRedirect(),command.isStdoutAppend())) {
                     fw.write(res + System.lineSeparator());
                 }
             } else {
