@@ -84,7 +84,7 @@ public class BuiltCompleter implements Completer {
                 reader.getTerminal().writer().println(
                         String.join("  ", matches)
                 );
-                reader.getTerminal().writer().println("$" + line.line());
+                reader.getTerminal().writer().println("$ " + line.line());
                 reader.getTerminal().flush();
                
                 
