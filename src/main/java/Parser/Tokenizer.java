@@ -7,24 +7,24 @@ public class Tokenizer {
         List<String> tokens = new java.util.ArrayList<>();
         StringBuilder current = new StringBuilder();
 
-        boolean inSingleQuote = false;
-        boolean inDoubleQuote = false;
+        boolean inSingle = false;
+        boolean inDouble = false;
 
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
 
-            // ===== SINGLE QUOTES =====
-            if (inSingleQuote) {
+            // ===== SINGLE QUOTE MODE =====
+            if (inSingle) {
                 if (c == '\'') {
-                    inSingleQuote = false;
+                    inSingle = false;
                 } else {
                     current.append(c);
                 }
                 continue;
             }
 
-            // ===== DOUBLE QUOTES =====
-            if (inDoubleQuote) {
+            // ===== DOUBLE QUOTE MODE =====
+            if (inDouble) {
 
                 if (c == '\\') {
                     if (i + 1 < input.length()) {
@@ -34,7 +34,6 @@ public class Tokenizer {
                             current.append(next);
                             i++;
                         } else {
-                            // literal backslash
                             current.append('\\');
                         }
                     } else {
@@ -44,7 +43,7 @@ public class Tokenizer {
                 }
 
                 if (c == '"') {
-                    inDoubleQuote = false;
+                    inDouble = false;
                     continue;
                 }
 
@@ -52,7 +51,7 @@ public class Tokenizer {
                 continue;
             }
 
-            // ===== NORMAL (outside quotes) =====
+            // ===== NORMAL MODE =====
 
             if (c == '\\') {
                 if (i + 1 < input.length()) {
@@ -63,12 +62,12 @@ public class Tokenizer {
             }
 
             if (c == '\'') {
-                inSingleQuote = true;
+                inSingle = true;
                 continue;
             }
 
             if (c == '"') {
-                inDoubleQuote = true;
+                inDouble = true;
                 continue;
             }
 
