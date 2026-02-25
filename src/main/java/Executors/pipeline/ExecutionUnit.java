@@ -12,7 +12,7 @@ public interface ExecutionUnit {
     // Set the output stream for this execution unit
 
     OutputStream getStdin();
-    
+
     // Wait for the execution to complete (if applicable)
 
     void waitFor() throws Exception;
