@@ -40,6 +40,7 @@ public class CommandExecutor {
 
         if (command.isPipeline()) {
             // System.err.println("Executing pipeline ");
+            System.err.println("Executing pipeline with " + command.getPipelineCommands().size() + " commands");
             new PipelineExecutor().execute(
                     command.getPipelineCommands());
         } else {
