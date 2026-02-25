@@ -9,26 +9,22 @@ public class Tokenizer {
 
     boolean inSingleQuote = false;
     boolean inDoubleQuote = false;
-
+    boolean isbackslash = false;
     for (int i = 0; i < input.length(); i++) {
         char c = input.charAt(i);
 
         // HANDLE BACKSLASH FIRST (inside double quotes only)
-        if (c == '\\' && inDoubleQuote) {
-            if (i + 1 < input.length()) {
-                char next = input.charAt(i + 1);
+        if (isbackslash ) {
+            current.append(c);
+            isbackslash = false;
+            continue;
+           
+        }   
 
-                // if (next == '"' || next == '\\') {
-                    current.append(next);
-                    i++; // skip next char
-                    continue;
-                // }
-            }
-            // literal backslash
-            // current.append('\\');
-            // continue;
+        if (c == '\\' && !inSingleQuote) {
+            isbackslash = true;
+            continue;
         }
-
         // SINGLE QUOTES
         if (c == '\'' && !inDoubleQuote) {
             inSingleQuote = !inSingleQuote;
