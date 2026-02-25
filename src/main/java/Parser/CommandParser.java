@@ -21,8 +21,12 @@ public class CommandParser {
         for (String token : tokens) {
 
             if (token.equals("|")) {
+                Command command = parseSingleCommand(current);
+                if (command != null) {
 
-                pipelineCommands.add(parseSingleCommand(current));
+                    pipelineCommands.add(command);
+
+                }
                 current.clear();
 
             } else {
@@ -32,7 +36,13 @@ public class CommandParser {
 
         // Add last segment
         if (!current.isEmpty()) {
-            pipelineCommands.add(parseSingleCommand(current));
+            Command command = parseSingleCommand(current);
+            if (command != null) {
+
+                pipelineCommands.add(command);
+
+            }
+            
         }
 
         Command pipeline = new Command();

@@ -5,8 +5,9 @@ import java.io.File;
 import Executors.BuiltinExecutor;
 import IO.ShellIo;
 import Model.Command;
+
 public class TypeCommand {
-    public static void execute(Command command,ShellIo io) {
+    public static void execute(Command command, ShellIo io) {
         BuiltinExecutor builtinExecutor = BuiltinExecutor.getInstance();
 
         String name = command.getArgs().size() > 1
@@ -26,7 +27,7 @@ public class TypeCommand {
                 }
             }
         }
-         io.println(res);
-      
+        io.println(res);
+
     }
 }
