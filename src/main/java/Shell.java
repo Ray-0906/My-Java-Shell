@@ -13,7 +13,6 @@ import Parser.CommandParser;
 import Parser.Tokenizer;
 import ShellContext.ShellContext;
 
-
 public class Shell {
     private LineReader reader;
 
@@ -27,11 +26,20 @@ public class Shell {
         }
         // Main loop to read user input and execute commands
     }
-    void runInteractive()  throws Exception {
-         Terminal terminal = TerminalBuilder.builder().system(true).build();
-      
-        reader = LineReaderBuilder.builder().terminal(terminal).completer(new BuiltCompleter()).build();
+
+    void runInteractive() throws Exception {
+
+        Terminal terminal = TerminalBuilder.builder()
+                .system(true)
+                .build();
+
+        reader = LineReaderBuilder.builder()
+                .terminal(terminal)
+                .completer(new BuiltCompleter())
+                .build();
+
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
+
         while (true) {
             String input = reader.readLine("$ ");
             executeCommand(input);

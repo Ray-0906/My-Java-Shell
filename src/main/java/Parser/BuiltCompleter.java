@@ -22,7 +22,15 @@ public class BuiltCompleter implements Completer {
         if (wordIndex == 0) {
             for (String cmd : BUILTINS) {
                 if (cmd.startsWith(word)) {
-                    candidates.add(new Candidate(cmd + " "));
+                    candidates.add(new Candidate(
+                        cmd,
+                        cmd,
+                        null,
+                        null,
+                        null,
+                        null,
+                        true
+                ));
                 }
             }
         }
