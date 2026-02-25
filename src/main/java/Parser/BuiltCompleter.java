@@ -1,7 +1,6 @@
 package Parser;
 
 import java.io.File;
-import java.util.List;
 
 import org.jline.reader.*;
 
@@ -85,7 +84,11 @@ public class BuiltCompleter implements Completer {
                 reader.getTerminal().writer().println(
                         String.join("  ", matches)
                 );
+                reader.getTerminal().writer().println("$" + line.line());
                 reader.getTerminal().flush();
+               
+                
+                
 
                 // Reset counter after displaying
                 tabCount = 0;
