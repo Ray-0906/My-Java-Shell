@@ -1,24 +1,28 @@
 package Executors;
+
+import Executors.pipeline.PipelineExecutor;
 import Model.Command;
+
 public class CommandExecutor {
     private static CommandExecutor instance = null;
     private final BuiltinExecutor builtinExecutor;
     private final ExternalExecutor externalExecutor;
-    
+
     private CommandExecutor() {
         this.builtinExecutor = BuiltinExecutor.getInstance();
         this.externalExecutor = ExternalExecutor.getInstance();
     }
-   
+
     public static CommandExecutor getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new CommandExecutor();
         }
         return instance;
     }
 
-    public void execute(Command command) {
-        if (command == null || command.getArgs().isEmpty()) return;
+    public void executeSingle(Command command) {
+        if (command == null ||  command.getArgs() == null || command.getArgs().isEmpty())
+            return;
 
         String name = command.getArgs().get(0);
 
@@ -28,4 +32,15 @@ public class CommandExecutor {
             externalExecutor.execute(command);
         }
     }
+
+    public void execute(Command command) throws Exception {
+
+        if (command.isPipeline()) {
+            new PipelineExecutor().execute(
+                    command.getPipelineCommands());
+        } else {
+            executeSingle(command);
+        }
+    }
+
 }
