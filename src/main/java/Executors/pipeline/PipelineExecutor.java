@@ -11,19 +11,24 @@ import java.util.List;
 
 public class PipelineExecutor {
 
+    private final List<Thread> pipeThreads = new ArrayList<>();
+
     private void pipe(InputStream in, OutputStream out) {
 
         if (in == null || out == null)
             return;
 
-        new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 in.transferTo(out);
                 out.flush();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+
+        t.start();
+        pipeThreads.add(t);
     }
 
     public void execute(List<Command> commands) throws Exception {
@@ -38,22 +43,27 @@ public class PipelineExecutor {
             }
         }
 
-        // 1️⃣ Start ALL units
+        // Start all processes
         for (ExecutionUnit unit : units) {
             unit.start();
         }
 
-        // 2️⃣ Connect pipes
+        // Connect pipes
         for (int i = 0; i < units.size() - 1; i++) {
             pipe(units.get(i).getStdout(), units.get(i + 1).getStdin());
         }
 
-        // 3️⃣ Last → terminal
+        // Last → terminal
         pipe(units.get(units.size() - 1).getStdout(), System.out);
 
-        // 4️⃣ Wait
+        // Wait for processes
         for (ExecutionUnit unit : units) {
             unit.waitFor();
+        }
+
+        // 🔥 IMPORTANT: wait for pipe threads
+        for (Thread t : pipeThreads) {
+            t.join();
         }
     }
 }
