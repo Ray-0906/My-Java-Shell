@@ -17,7 +17,7 @@ import ShellContext.ShellContext;
 public class Shell {
     private LineReader reader;
 
-    void run() {
+    void run() throws Exception {
         Scanner scanner = new Scanner(System.in);
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
         while (true) {
@@ -54,6 +54,7 @@ public class Shell {
         List<String> tokenizer = Tokenizer.tokenize(input);
 
         Command command = CommandParser.parse(tokenizer);
+        
         if (command.isPipeline()) {
             CommandExecutor.getInstance().execute(command);
             return;
