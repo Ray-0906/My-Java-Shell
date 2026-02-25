@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.jline.reader.*;
 
-
 import java.util.*;
 
 public class BuiltCompleter implements Completer {
@@ -14,8 +13,8 @@ public class BuiltCompleter implements Completer {
 
     @Override
     public void complete(LineReader reader,
-                         ParsedLine line,
-                         List<Candidate> candidates) {
+            ParsedLine line,
+            List<Candidate> candidates) {
 
         if (line.wordIndex() != 0) {
             return;
@@ -41,7 +40,8 @@ public class BuiltCompleter implements Completer {
                     continue;
 
                 File[] files = directory.listFiles();
-                if (files == null) continue;
+                if (files == null)
+                    continue;
 
                 for (File file : files) {
                     if (file.isFile() && file.canExecute()) {
@@ -76,22 +76,22 @@ public class BuiltCompleter implements Completer {
                 // First TAB → bell
                 reader.getTerminal().writer().print("\u0007");
                 reader.getTerminal().flush();
-            }
-            else if (tabCount == 2) {
+            } else if (tabCount == 2) {
                 // Second TAB → print matches
 
                 reader.getTerminal().writer().println();
                 reader.getTerminal().writer().println(
-                        String.join("  ", matches)
-                );
-                reader.getTerminal().writer().println("$ " + line.line());
+                        String.join("  ", matches));
+                // reader.getTerminal().writer().println("$ " + line.line());
                 reader.getTerminal().flush();
-               
-                
-                
+
+                reader.callWidget(LineReader.REDRAW_LINE);
+                reader.callWidget(LineReader.REDISPLAY);
+
+                tabCount = 0;
 
                 // Reset counter after displaying
-                tabCount = 0;
+               
             }
 
             return;
@@ -110,8 +110,7 @@ public class BuiltCompleter implements Completer {
                     null,
                     null,
                     null,
-                    true
-            ));
+                    true));
             return;
         }
 
