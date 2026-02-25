@@ -18,15 +18,15 @@ public class Tokenizer {
             if (i + 1 < input.length()) {
                 char next = input.charAt(i + 1);
 
-                if (next == '"' || next == '\\') {
+                // if (next == '"' || next == '\\') {
                     current.append(next);
                     i++; // skip next char
                     continue;
-                }
+                // }
             }
             // literal backslash
-            current.append('\\');
-            continue;
+            // current.append('\\');
+            // continue;
         }
 
         // SINGLE QUOTES
