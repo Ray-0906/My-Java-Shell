@@ -26,7 +26,7 @@ public class Tokenizer {
             }
 
             // BACKSLASH inside DOUBLE QUOTES
-            if (c == '\\' && inDoubleQuote) {
+            if (c == '\\' && !inSingleQuote) {
                 if (i + 1 < input.length()) {
                     char next = input.charAt(i + 1);
 
