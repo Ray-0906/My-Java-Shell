@@ -25,6 +25,7 @@ public class Shell {
             String input = scanner.nextLine();
             executeCommand(input);
         }
+        
         // Main loop to read user input and execute commands
     }
 
@@ -53,9 +54,15 @@ public class Shell {
         List<String> tokenizer = Tokenizer.tokenize(input);
 
         Command command = CommandParser.parse(tokenizer);
-        if (command == null) {
+        if (command.isPipeline()) {
+            CommandExecutor.getInstance().execute(command);
             return;
         }
+
+        if (command.getArgs() == null || command.getArgs().isEmpty()) {
+            return;
+        }
+
         CommandExecutor.getInstance().execute(command);
         // Parse the input into a Command object and execute it
     }
