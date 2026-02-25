@@ -21,6 +21,9 @@ public class CommandExecutor {
     }
 
     public void executeSingle(Command command) {
+        System.err.println("came at single command executor with " + command.getArgs());
+         if (command == null ||  command.getArgs() == null || command.getArgs().isEmpty())
+            return;
         if (command == null ||  command.getArgs() == null || command.getArgs().isEmpty())
             return;
 
@@ -36,9 +39,11 @@ public class CommandExecutor {
     public void execute(Command command) throws Exception {
 
         if (command.isPipeline()) {
+            System.err.println("Executing pipeline ");
             new PipelineExecutor().execute(
                     command.getPipelineCommands());
         } else {
+            
             executeSingle(command);
         }
     }
