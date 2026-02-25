@@ -16,22 +16,25 @@ public class BuiltCompleter implements Completer {
             List<Candidate> candidates) {
 
         String word = line.word();
-        int wordIndex = line.wordIndex();
 
-        // Only autocomplete first word
-        if (wordIndex == 0) {
-            for (String cmd : BUILTINS) {
+        if (line.wordIndex() == 0) {
+            for (String cmd : List.of("echo", "exit")) {
                 if (cmd.startsWith(word)) {
                     candidates.add(new Candidate(
-                        cmd,
-                        cmd,
-                        null,
-                        null,
-                        null,
-                        null,
-                        true
-                ));
+                            cmd,
+                            cmd,
+                            null,
+                            null,
+                            null,
+                            null,
+                            true));
                 }
+            }
+
+            // 🔔 If no matches found, ring bell
+            if (candidates.isEmpty()) {
+                reader.getTerminal().writer().print("\u0007");
+                reader.getTerminal().flush();
             }
         }
     }
