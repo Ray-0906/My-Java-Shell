@@ -12,7 +12,7 @@ import Parser.BuiltCompleter;
 import Parser.CommandParser;
 import Parser.Tokenizer;
 import ShellContext.ShellContext;
-import java.nio.file.Paths;
+
 
 public class Shell {
     private LineReader reader;
@@ -27,8 +27,9 @@ public class Shell {
         }
         // Main loop to read user input and execute commands
     }
-    void runInteractive() {
-        Terminal terminal = TerminalBuilder.builder().system(true).build();
+    void runInteractive()  throws Exception {
+         Terminal terminal = TerminalBuilder.builder().system(true).build();
+        
         reader = LineReaderBuilder.builder().terminal(terminal).completer(new BuiltCompleter()).build();
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
         while (true) {
