@@ -38,6 +38,6 @@ public class Command {
         this.pipelineCommands = pipelineCommands;
     }
     public boolean isPipeline() {
-        return pipelineCommands != null && !pipelineCommands.isEmpty();
+        return pipelineCommands != null;
     }
 }
