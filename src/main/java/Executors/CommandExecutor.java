@@ -25,7 +25,7 @@ public class CommandExecutor {
          if (command == null ||  command.getArgs() == null || command.getArgs().isEmpty()) {
              System.out.println(" inside Single command executor with empty command");
             return;
-       
+         }
 
         String name = command.getArgs().get(0);
 
