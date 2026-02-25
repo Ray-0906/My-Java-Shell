@@ -160,7 +160,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-         new Shell().run();
+         new Shell().runInteractive();
         // TODO: Uncomment the code below to pass the first stage
 
         // currentDir = Paths.get(System.getProperty("user.dir"));
