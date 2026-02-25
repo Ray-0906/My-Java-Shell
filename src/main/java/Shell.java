@@ -5,7 +5,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 import org.jline.reader.*;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.*;
 
 import Executors.CommandExecutor;
@@ -30,9 +29,8 @@ public class Shell {
     }
     void runInteractive()  throws Exception {
          Terminal terminal = TerminalBuilder.builder().system(true).build();
-         StringsCompleter builtCompleter = new StringsCompleter("echo", "cd", "pwd", "type", "exit");
-        
-        reader = LineReaderBuilder.builder().terminal(terminal).completer(builtCompleter).build();
+      
+        reader = LineReaderBuilder.builder().terminal(terminal).completer(new BuiltCompleter()).build();
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
         while (true) {
             String input = reader.readLine("$ ");
