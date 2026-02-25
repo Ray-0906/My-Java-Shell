@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
 import org.jline.reader.*;
+import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.*;
 
 import Executors.CommandExecutor;
@@ -36,6 +37,7 @@ public class Shell {
         reader = LineReaderBuilder.builder()
                 .terminal(terminal)
                 .completer(new BuiltCompleter())
+                .parser(new DefaultParser().escapeChars(null)) // VERY IMPORTANT
                 .build();
 
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));

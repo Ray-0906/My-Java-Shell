@@ -7,71 +7,38 @@ public class Tokenizer {
         List<String> tokens = new java.util.ArrayList<>();
         StringBuilder current = new StringBuilder();
 
-        boolean inSingle = false;
-        boolean inDouble = false;
-
+        boolean inSingleQuote = false;
+        boolean inDoubleQuote = false;
+        boolean isbackslash = false;
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
 
-            // ===== SINGLE QUOTE MODE =====
-            if (inSingle) {
-                if (c == '\'') {
-                    inSingle = false;
-                } else {
-                    current.append(c);
-                }
-                continue;
-            }
-
-            // ===== DOUBLE QUOTE MODE =====
-            if (inDouble) {
-
-                if (c == '\\') {
-                    if (i + 1 < input.length()) {
-                        char next = input.charAt(i + 1);
-
-                        if (next == '"' || next == '\\' || next == '$' || next == '`') {
-                            current.append(next);
-                            i++;
-                        } else {
-                            current.append('\\');
-                        }
-                    } else {
-                        current.append('\\');
-                    }
-                    continue;
-                }
-
-                if (c == '"') {
-                    inDouble = false;
-                    continue;
-                }
-
+            // HANDLE BACKSLASH FIRST (inside double quotes only)
+            if (isbackslash) {
                 current.append(c);
+                isbackslash = false;
+                continue;
+
+            }
+
+            if (c == '\\' && !inSingleQuote) {
+                isbackslash = true;
+                continue;
+            }
+            // SINGLE QUOTES
+            if (c == '\'' && !inDoubleQuote) {
+                inSingleQuote = !inSingleQuote;
                 continue;
             }
 
-            // ===== NORMAL MODE =====
-
-            if (c == '\\') {
-                if (i + 1 < input.length()) {
-                    current.append(input.charAt(i + 1));
-                    i++;
-                }
+            // DOUBLE QUOTES
+            if (c == '"' && !inSingleQuote) {
+                inDoubleQuote = !inDoubleQuote;
                 continue;
             }
 
-            if (c == '\'') {
-                inSingle = true;
-                continue;
-            }
-
-            if (c == '"') {
-                inDouble = true;
-                continue;
-            }
-
-            if (Character.isWhitespace(c)) {
+            // WHITESPACE outside quotes
+            if (Character.isWhitespace(c) && !inSingleQuote && !inDoubleQuote) {
                 if (current.length() > 0) {
                     tokens.add(current.toString());
                     current.setLength(0);
