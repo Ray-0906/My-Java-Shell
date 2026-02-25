@@ -54,7 +54,7 @@ public class Shell {
         List<String> tokenizer = Tokenizer.tokenize(input);
 
         Command command = CommandParser.parse(tokenizer);
-         System.err.println("Parsed command: " + (command.isPipeline() ? " (pipeline)" : "not a pipeline") );  
+        //  System.err.println("Parsed command: " + (command.isPipeline() ? " (pipeline)" : "not a pipeline") );  
         if (command.isPipeline()) {
         
             CommandExecutor.getInstance().execute(command);
