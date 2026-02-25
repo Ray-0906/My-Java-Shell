@@ -48,11 +48,12 @@ public class Shell {
         }
     }
 
-    void executeCommand(String input) {
+    void executeCommand(String input) throws Exception {
 
         List<String> tokenizer = Tokenizer.tokenize(input);
+
         Command command = CommandParser.parse(tokenizer);
-        if (command == null || command.getArgs().isEmpty()) {
+        if (command == null) {
             return;
         }
         CommandExecutor.getInstance().execute(command);
