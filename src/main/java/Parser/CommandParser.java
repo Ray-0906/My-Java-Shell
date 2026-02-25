@@ -1,12 +1,47 @@
 package Parser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import Model.Command;
 
 public class CommandParser {
-
     public static Command parse(List<String> tokens) {
+        if (tokens.contains("|")) {
+            return parsePipeline(tokens);
+        }
+        return parseSingleCommand(tokens);
+    }
+
+    private static Command parsePipeline(List<String> tokens) {
+
+        List<Command> pipelineCommands = new ArrayList<>();
+        List<String> current = new ArrayList<>();
+
+        for (String token : tokens) {
+
+            if (token.equals("|")) {
+
+                pipelineCommands.add(parseSingleCommand(current));
+                current.clear();
+
+            } else {
+                current.add(token);
+            }
+        }
+
+        // Add last segment
+        if (!current.isEmpty()) {
+            pipelineCommands.add(parseSingleCommand(current));
+        }
+
+        Command pipeline = new Command();
+        pipeline.setPipelineCommands(pipelineCommands);
+
+        return pipeline;
+    }
+
+    public static Command parseSingleCommand(List<String> tokens) {
         if (tokens == null || tokens.isEmpty())
             return null;
 
@@ -35,8 +70,7 @@ public class CommandParser {
                 tokens.remove(i + 1);
                 tokens.remove(i);
                 i--;
-            }
-            else if (t.equals("2>>")) {
+            } else if (t.equals("2>>")) {
                 stderr = tokens.get(i + 1);
                 stderrAppend = true;
                 tokens.remove(i + 1);
@@ -47,4 +81,5 @@ public class CommandParser {
 
         return new Command(tokens, stdout, append, stderr, stderrAppend);
     }
+
 }

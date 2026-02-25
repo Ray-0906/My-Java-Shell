@@ -89,4 +89,15 @@ public class BuiltinExecutor {
         }
 
     }
+    public void execute(Command command, ShellIo io) {
+        String name = command.getArgs().get(0);
+
+        switch (name) {
+            case "echo" -> EchoCommand.execute(command, io);
+            case "cd" -> CdCommand.execute(command, io);
+            case "pwd" -> PwdCommand.execute(command, io);
+            case "type" -> TypeCommand.execute(command, io);
+            case "exit" -> System.exit(0);
+        }
+    }
 }
