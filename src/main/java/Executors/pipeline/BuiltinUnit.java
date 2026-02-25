@@ -1,38 +1,44 @@
 package Executors.pipeline;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
-import java.nio.channels.Pipe;
-
 import Executors.BuiltinExecutor;
 import IO.ShellIo;
 import Model.Command;
 
+import java.io.*;
+
 public class BuiltinUnit implements ExecutionUnit {
-    private PipedInputStream stdout;
-    private PipedOutputStream stdoutWriter;
+
+    private final Command command;
+
+    private final PipedInputStream stdout;
+    private final PipedOutputStream stdoutWriter;
+
+    private Thread worker;
 
     public BuiltinUnit(Command command) throws Exception {
+        this.command = command;
 
         this.stdout = new PipedInputStream();
-        this.stdoutWriter = new PipedOutputStream(this.stdout);
+        this.stdoutWriter = new PipedOutputStream(stdout);
+    }
 
-        // Execute the builtin command and write its output to stdoutWriter
-        new Thread(() -> {
+    @Override
+    public void start() {
+
+        worker = new Thread(() -> {
             try (PrintStream ps = new PrintStream(stdoutWriter)) {
 
                 ShellIo io = new ShellIo(ps, System.err);
                 BuiltinExecutor.getInstance().execute(command, io);
+
                 ps.flush();
-                stdoutWriter.close();
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        });
 
-        }).start();
+        worker.start();
     }
 
     @Override
@@ -42,12 +48,13 @@ public class BuiltinUnit implements ExecutionUnit {
 
     @Override
     public OutputStream getStdin() {
-        return null; // for now builtins don’t consume pipeline input
+        return null; // still fine for now
     }
 
     @Override
-    public void waitFor() {
-        // nothing required
+    public void waitFor() throws InterruptedException {
+        if (worker != null) {
+            worker.join();
+        }
     }
-
 }

@@ -23,7 +23,7 @@ public class CommandExecutor {
     public void executeSingle(Command command) {
         // System.err.println("came at single command executor with " + command.getArgs());
          if (command == null ||  command.getArgs() == null || command.getArgs().isEmpty()) {
-             System.out.println(" inside Single command executor with empty command");
+            //  System.out.println(" inside Single command executor with empty command");
             return;
          }
 
@@ -40,7 +40,7 @@ public class CommandExecutor {
 
         if (command.isPipeline()) {
             // System.err.println("Executing pipeline ");
-            System.err.println("Executing pipeline with " + command.getPipelineCommands().size() + " commands");
+           
             new PipelineExecutor().execute(
                     command.getPipelineCommands());
         } else {

@@ -12,6 +12,8 @@ public interface ExecutionUnit {
     // Set the output stream for this execution unit
 
     OutputStream getStdin();
+    
+    void start() throws Exception;
 
     // Wait for the execution to complete (if applicable)
 

@@ -5,12 +5,17 @@ import ShellContext.ShellContext;
 
 import java.io.*;
 
+public class ExternalUnit implements ExecutionUnit {
 
-public class ExternalUnit implements ExecutionUnit  {
-
+    private final Command command;
     private Process process;
 
-    public ExternalUnit(Command command) throws Exception {
+    public ExternalUnit(Command command) {
+        this.command = command;
+    }
+
+    @Override
+    public void start() throws Exception {
 
         ProcessBuilder pb = new ProcessBuilder(command.getArgs());
         pb.directory(ShellContext.getCurrentDir().toFile());
