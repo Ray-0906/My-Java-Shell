@@ -17,6 +17,17 @@ import ShellContext.ShellContext;
 public class Shell {
     private LineReader reader;
 
+    private static void  loadHistory() {
+        List<String> history = ShellContext.getHistory();
+        try (Scanner scanner = new Scanner(Paths.get(System.getenv("HISFILE")))) {
+            while (scanner.hasNextLine()) {
+                history.add(scanner.nextLine());
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
     void run() throws Exception {
         Scanner scanner = new Scanner(System.in);
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
@@ -32,7 +43,7 @@ public class Shell {
     }
 
     void runInteractive() throws Exception {
-
+          loadHistory();
         Terminal terminal = TerminalBuilder.builder()
                 .system(true)
                 .build();
@@ -44,7 +55,7 @@ public class Shell {
                 .build();
 
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
-
+         
         while (true) {
             String input = reader.readLine("$ ");
             ShellContext.addToHistory(input);
