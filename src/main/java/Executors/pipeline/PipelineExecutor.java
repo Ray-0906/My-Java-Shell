@@ -1,46 +1,69 @@
 package Executors.pipeline;
 
 import Model.Command;
-import ShellContext.ShellContext;
+import Executors.BuiltinExecutor;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PipelineExecutor {
 
+    private final List<Thread> pipeThreads = new ArrayList<>();
+
+    private void pipe(InputStream in, OutputStream out) {
+
+        if (in == null || out == null)
+            return;
+
+        Thread t = new Thread(() -> {
+            try {
+                in.transferTo(out);
+                out.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        t.start();
+        pipeThreads.add(t);
+    }
+
     public void execute(List<Command> commands) throws Exception {
 
-        System.err.println("DEBUG Pipeline: " + commands.size() + " commands");
+        List<ExecutionUnit> units = new ArrayList<>();
 
-        List<ProcessBuilder> builders = new ArrayList<>();
-
-        for (int i = 0; i < commands.size(); i++) {
-
-            Command cmd = commands.get(i);
-
-            System.err.println("DEBUG cmd[" + i + "] args: " + cmd.getArgs());
-
-            ProcessBuilder pb = new ProcessBuilder(cmd.getArgs());
-            pb.directory(ShellContext.getCurrentDir().toFile());
-
-            // Last command outputs to terminal
-            if (i == commands.size() - 1) {
-                pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        for (Command command : commands) {
+            if (BuiltinExecutor.getInstance().isBuiltin(command.getArgs().get(0))) {
+                units.add(new BuiltinUnit(command));
+            } else {
+                units.add(new ExternalUnit(command));
             }
-
-            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-            builders.add(pb);
         }
 
-        // Java handles all pipe connections automatically
-        List<Process> processes = ProcessBuilder.startPipeline(builders);
-
-        // Wait for all processes to complete
-        for (Process p : processes) {
-            p.waitFor();
+        // Start all processes
+        for (ExecutionUnit unit : units) {
+            unit.start();
         }
 
-        System.err.println("DEBUG Pipeline done");
+        // Connect pipes
+        for (int i = 0; i < units.size() - 1; i++) {
+            pipe(units.get(i).getStdout(), units.get(i + 1).getStdin());
+        }
+
+        // Last → terminal
+        pipe(units.get(units.size() - 1).getStdout(), System.out);
+
+        // Wait for processes
+        for (ExecutionUnit unit : units) {
+            unit.waitFor();
+        }
+
+        // 🔥 IMPORTANT: wait for pipe threads
+        for (Thread t : pipeThreads) {
+            t.join();
+        }
     }
 }
