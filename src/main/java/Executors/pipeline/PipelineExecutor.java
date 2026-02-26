@@ -17,12 +17,15 @@ public class PipelineExecutor {
 
         // 1. Create ExecutionUnits
         List<ExecutionUnit> units = new ArrayList<>();
-        for (Command cmd : commands) {
+        for (int i = 0; i < n; i++) {
+            Command cmd = commands.get(i);
             String name = cmd.getArgs().get(0);
+            boolean isLast = (i == n - 1);
+
             if (builtinExecutor.isBuiltin(name)) {
-                units.add(new BuiltinUnit(cmd));
+                units.add(new BuiltinUnit(cmd, isLast));
             } else {
-                units.add(new ExternalUnit(cmd));
+                units.add(new ExternalUnit(cmd, isLast));
             }
         }
 
@@ -43,25 +46,28 @@ public class PipelineExecutor {
                     src.transferTo(dst);
                     dst.close();
                 } catch (IOException e) {
-                    // Broken pipe — expected if downstream exits early
+                    // Broken pipe — expected
                 }
             });
             t.start();
             pipeThreads.add(t);
         }
 
-        // 4. Last command's stdout -> System.out
-        Thread lastOut = new Thread(() -> {
-            try {
-                InputStream src = units.get(n - 1).getStdout();
-                src.transferTo(System.out);
-                System.out.flush();
-            } catch (IOException e) {
-                // ignore
-            }
-        });
-        lastOut.start();
-        pipeThreads.add(lastOut);
+        // 4. If last command is builtin, pipe its stdout to System.out
+        ExecutionUnit lastUnit = units.get(n - 1);
+        if (lastUnit.getStdout() != null) {
+            Thread lastOut = new Thread(() -> {
+                try {
+                    InputStream src = lastUnit.getStdout();
+                    src.transferTo(System.out);
+                    System.out.flush();
+                } catch (IOException e) {
+                    // ignore
+                }
+            });
+            lastOut.start();
+            pipeThreads.add(lastOut);
+        }
 
         // 5. Wait for all pipe threads to finish
         for (Thread t : pipeThreads) {
