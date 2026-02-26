@@ -21,13 +21,14 @@ public class historyCommand {
             return;
         }
 
-        // history -w <file> — write history to file
+        // history -w <file> — write all history to file
         if (args.size() >= 3 && args.get(1).equals("-w")) {
             String filePath = args.get(2);
             writeHistoryToFile(filePath);
             return;
         }
-      // history -a <file> — append history to file
+
+        // history -a <file> — append new commands since last flush
         if (args.size() >= 3 && args.get(1).equals("-a")) {
             String filePath = args.get(2);
             appendHistoryToFile(filePath);
@@ -38,10 +39,8 @@ public class historyCommand {
         List<String> history = ShellContext.getHistory();
         int total = history.size();
 
-        // Default: show all history
         int count = total;
 
-        // If argument provided, limit to last n entries
         if (args.size() > 1) {
             try {
                 count = Integer.parseInt(args.get(1));
@@ -50,7 +49,6 @@ public class historyCommand {
             }
         }
 
-        // Calculate start index
         int start = Math.max(0, total - count);
 
         for (int i = start; i < total; i++) {
@@ -68,7 +66,7 @@ public class historyCommand {
                 ShellContext.addToHistory(line);
             }
         } catch (Exception e) {
-            // File not found or read error — ignore
+            // ignore
         }
     }
 
@@ -80,20 +78,25 @@ public class historyCommand {
                 writer.newLine();
             }
         } catch (Exception e) {
-            // Write error — ignore
+            // ignore
         }
     }
 
     private static void appendHistoryToFile(String filePath) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
             List<String> history = ShellContext.getHistory();
-            for (String entry : history) {
-                writer.write(entry);
+            int lastFlushed = ShellContext.getLastFlushedIndex();
+
+            // Append only commands since last flush
+            for (int i = lastFlushed; i < history.size(); i++) {
+                writer.write(history.get(i));
                 writer.newLine();
             }
+
+            // Update last flushed index
+            ShellContext.setLastFlushedIndex(history.size());
         } catch (Exception e) {
-            // Write error — ignore
+            // ignore
         }
     }
-
 }
