@@ -42,7 +42,7 @@ public class BuiltCompleter implements Completer {
         List<String> matches = new ArrayList<>();
 
         // 1️⃣ Builtins
-        for (String cmd : List.of("echo", "exit")) {
+        for (String cmd : List.of("echo","type","history","cd","exit")) {
             if (cmd.startsWith(prefix)) {
                 matches.add(cmd);
             }

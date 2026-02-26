@@ -1,15 +1,17 @@
 package Executors;
 
 import Model.Command;
+import ShellContext.ShellContext;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.List;
+
 import Builtins.CdCommand;
 import Builtins.EchoCommand;
 import Builtins.PwdCommand;
 import Builtins.TypeCommand;
 import IO.ShellIo;
+import Builtins.historyCommand;
 
 public class BuiltinExecutor {
     // Singleton pattern to ensure only one instance of BuiltinExecutor exists
@@ -26,7 +28,8 @@ public class BuiltinExecutor {
     }
 
     public boolean isBuiltin(String name) {
-        return List.of("echo", "cd", "pwd", "type", "exit").contains(name);
+
+        return ShellContext.isBuiltin(name);
     }
 
 
@@ -80,6 +83,7 @@ public class BuiltinExecutor {
                 case "cd" -> CdCommand.execute(command, io);
                 case "pwd" -> PwdCommand.execute(command, io);
                 case "type" -> TypeCommand.execute(command, io);
+                case "history" -> historyCommand.execute(command, io);
                 case "exit" -> System.exit(0);
             }
             closeIo(io);
@@ -97,6 +101,7 @@ public class BuiltinExecutor {
             case "cd" -> CdCommand.execute(command, io);
             case "pwd" -> PwdCommand.execute(command, io);
             case "type" -> TypeCommand.execute(command, io);
+            case "history" -> historyCommand.execute(command, io);
             case "exit" -> System.exit(0);
         }
     }

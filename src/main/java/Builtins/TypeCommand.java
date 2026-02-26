@@ -7,6 +7,7 @@ import IO.ShellIo;
 import Model.Command;
 
 public class TypeCommand {
+    
     public static void execute(Command command, ShellIo io) {
         BuiltinExecutor builtinExecutor = BuiltinExecutor.getInstance();
 

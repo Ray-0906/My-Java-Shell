@@ -23,7 +23,9 @@ public class Shell {
         while (true) {
             System.out.print("$ ");
             String input = scanner.nextLine();
+            ShellContext.addToHistory(input);
             executeCommand(input);
+            
         }
         
         // Main loop to read user input and execute commands
@@ -45,7 +47,9 @@ public class Shell {
 
         while (true) {
             String input = reader.readLine("$ ");
+            ShellContext.addToHistory(input);
             executeCommand(input);
+            
         }
     }
 
