@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class FileCompleters {
+public class FileCompleter {
     private static int tabCount = 0;
     private static String lastPrefix = null;
 
