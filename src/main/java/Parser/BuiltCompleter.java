@@ -159,11 +159,35 @@ public class BuiltCompleter implements Completer {
         reader.getTerminal().flush();
     }
 
+   // ...existing code...
+
     private void completeFilename(LineReader reader, ParsedLine line, List<Candidate> candidates) {
         String prefix = line.word();
 
-        File currentDir = ShellContext.getCurrentDir().toFile();
-        File[] files = currentDir.listFiles();
+        // Determine the directory to search and the filename prefix
+        File searchDir;
+        String filePrefix;
+        String pathPrefix; // the directory part to prepend to matches
+
+        if (prefix.contains("/")) {
+            int lastSlash = prefix.lastIndexOf('/');
+            String dirPath = prefix.substring(0, lastSlash + 1); // includes trailing /
+            filePrefix = prefix.substring(lastSlash + 1);
+            pathPrefix = dirPath;
+
+            // Resolve relative to current directory
+            File dir = new File(dirPath);
+            if (!dir.isAbsolute()) {
+                dir = new File(ShellContext.getCurrentDir().toFile(), dirPath);
+            }
+            searchDir = dir;
+        } else {
+            searchDir = ShellContext.getCurrentDir().toFile();
+            filePrefix = prefix;
+            pathPrefix = "";
+        }
+
+        File[] files = searchDir.listFiles();
 
         if (files == null) {
             reader.getTerminal().writer().print("\u0007");
@@ -173,8 +197,8 @@ public class BuiltCompleter implements Completer {
 
         List<String> matches = new ArrayList<>();
         for (File f : files) {
-            if (f.getName().startsWith(prefix)) {
-                matches.add(f.getName());
+            if (f.getName().startsWith(filePrefix)) {
+                matches.add(pathPrefix + f.getName());
             }
         }
 
@@ -235,4 +259,6 @@ public class BuiltCompleter implements Completer {
             tabCount = 0;
         }
     }
+
+// ...existing code...
 }
