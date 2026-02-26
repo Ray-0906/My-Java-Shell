@@ -1,0 +1,6 @@
+pwd
+echo hello
+echo hello | pwd | type history
+history
+pwd
+history -w log.txt
