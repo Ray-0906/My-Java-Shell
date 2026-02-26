@@ -8,6 +8,7 @@ import java.io.PrintStream;
 
 import Builtins.CdCommand;
 import Builtins.EchoCommand;
+import Builtins.ExitCommand;
 import Builtins.PwdCommand;
 import Builtins.TypeCommand;
 import IO.ShellIo;
@@ -84,7 +85,7 @@ public class BuiltinExecutor {
                 case "pwd" -> PwdCommand.execute(command, io);
                 case "type" -> TypeCommand.execute(command, io);
                 case "history" -> historyCommand.execute(command, io);
-                case "exit" -> System.exit(0);
+                case "exit" -> ExitCommand.execute(command, io);
             }
             closeIo(io);
         } catch (Exception e) {
