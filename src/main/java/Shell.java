@@ -1,6 +1,8 @@
 
 import Model.Command;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
@@ -17,33 +19,44 @@ import ShellContext.ShellContext;
 public class Shell {
     private LineReader reader;
 
-    private static void  loadHistory() {
-        List<String> history = ShellContext.getHistory();
-        try (Scanner scanner = new Scanner(Paths.get(System.getenv("HISFILE")))) {
-            while (scanner.hasNextLine()) {
-                history.add(scanner.nextLine());
+    private void loadHistoryFromFile() {
+        String histFile = System.getenv("HISTFILE");
+        if (histFile == null || histFile.isEmpty()) {
+            return;
+        }
+        ShellContext.setHistFile(histFile);
+        try (BufferedReader br = new BufferedReader(new FileReader(histFile))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+                ShellContext.addToHistory(line);
             }
+            // Mark all loaded entries as already flushed
+            ShellContext.setLastFlushedIndex(ShellContext.getHistory().size());
         } catch (Exception e) {
-            // ignore
+            // File doesn't exist yet — ignore
         }
     }
 
     void run() throws Exception {
         Scanner scanner = new Scanner(System.in);
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
+         loadHistoryFromFile();
         while (true) {
             System.out.print("$ ");
             String input = scanner.nextLine();
             ShellContext.addToHistory(input);
             executeCommand(input);
-            
+
         }
-        
+
         // Main loop to read user input and execute commands
     }
 
     void runInteractive() throws Exception {
-          loadHistory();
+
         Terminal terminal = TerminalBuilder.builder()
                 .system(true)
                 .build();
@@ -55,12 +68,12 @@ public class Shell {
                 .build();
 
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
-         
+         loadHistoryFromFile();
         while (true) {
             String input = reader.readLine("$ ");
             ShellContext.addToHistory(input);
             executeCommand(input);
-            
+
         }
     }
 
@@ -69,9 +82,10 @@ public class Shell {
         List<String> tokenizer = Tokenizer.tokenize(input);
 
         Command command = CommandParser.parse(tokenizer);
-        //  System.err.println("Parsed command: " + (command.isPipeline() ? " (pipeline)" : "not a pipeline") );  
+        // System.err.println("Parsed command: " + (command.isPipeline() ? " (pipeline)"
+        // : "not a pipeline") );
         if (command.isPipeline()) {
-        
+
             CommandExecutor.getInstance().execute(command);
             return;
         }

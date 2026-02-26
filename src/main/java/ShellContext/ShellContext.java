@@ -12,6 +12,8 @@ public class ShellContext {
 
     private static int lastFlushedIndex = 0;
 
+    private static String histFile = null;
+
     private static List<String> builtins = List.of("echo", "cd", "pwd", "type", "history", "exit");
 
     public static List<String> getBuiltins() {
@@ -44,5 +46,13 @@ public class ShellContext {
 
     public static void setCurrentDir(Path path) {
         currentDir = path;
+    }
+
+    public static String getHistFile() {
+        return histFile;
+    }
+
+    public static void setHistFile(String path) {
+        histFile = path;
     }
 }
