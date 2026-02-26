@@ -12,4 +12,6 @@ public interface ExecutionUnit {
     OutputStream getStdin();
 
     void waitFor() throws Exception;
+
+    void destroy();
 }

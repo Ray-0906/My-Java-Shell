@@ -47,7 +47,7 @@ public class PipelineExecutor {
                     src.transferTo(dst);
                     dst.close();
                 } catch (IOException e) {
-                    // Broken pipe — expected
+                    // Broken pipe — expected when downstream exits
                 }
             });
             t.start();
@@ -70,14 +70,22 @@ public class PipelineExecutor {
             pipeThreads.add(lastOut);
         }
 
-        // 5. Wait for all pipe threads to finish
-        for (Thread t : pipeThreads) {
-            t.join();
+        // 5. Wait for the LAST unit to finish first
+        lastUnit.waitFor();
+
+        // 6. Destroy all other units (handles cases like tail -f that never exit)
+        for (int i = 0; i < n - 1; i++) {
+            units.get(i).destroy();
         }
 
-        // 6. Wait for all units to finish
-        for (ExecutionUnit unit : units) {
-            unit.waitFor();
+        // 7. Wait for all pipe threads to finish
+        for (Thread t : pipeThreads) {
+            t.join(2000); // timeout to avoid hanging
+        }
+
+        // 8. Wait for remaining units
+        for (int i = 0; i < n - 1; i++) {
+            units.get(i).waitFor();
         }
     }
 }

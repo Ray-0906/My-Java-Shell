@@ -44,4 +44,11 @@ public class ExternalUnit implements ExecutionUnit {
     public void waitFor() throws Exception {
         process.waitFor();
     }
+
+    @Override
+    public void destroy() {
+        if (process != null) {
+            process.destroyForcibly();
+        }
+    }
 }

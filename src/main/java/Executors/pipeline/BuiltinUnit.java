@@ -33,7 +33,6 @@ public class BuiltinUnit implements ExecutionUnit {
             this.stdoutWrite = null;
         }
 
-        // Only create stdin pipe if not the first command
         if (!isFirst) {
             this.stdinRead = new PipedInputStream();
             this.stdinWrite = new PipedOutputStream(stdinRead);
@@ -62,7 +61,6 @@ public class BuiltinUnit implements ExecutionUnit {
                     ps.close();
                 }
 
-                // Drain remaining stdin so upstream doesn't block
                 if (stdinRead != null) {
                     stdinRead.transferTo(OutputStream.nullOutputStream());
                     stdinRead.close();
@@ -89,6 +87,13 @@ public class BuiltinUnit implements ExecutionUnit {
     public void waitFor() throws Exception {
         if (worker != null) {
             worker.join();
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (worker != null) {
+            worker.interrupt();
         }
     }
 }
