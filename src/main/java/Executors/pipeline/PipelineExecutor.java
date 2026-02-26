@@ -3,57 +3,39 @@ package Executors.pipeline;
 import Model.Command;
 import ShellContext.ShellContext;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import Executors.BuiltinExecutor;
-
 public class PipelineExecutor {
-    private void pipe(InputStream in, OutputStream out) {
-
-        if (in == null || out == null)
-            return;
-
-        new Thread(() -> {
-            try {
-                in.transferTo(out);
-                out.flush();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
 
     public void execute(List<Command> commands) throws Exception {
 
-        List<ExecutionUnit> units = new ArrayList<>();
+        List<ProcessBuilder> builders = new ArrayList<>();
 
-        for (Command command : commands) {
-            if (BuiltinExecutor.getInstance().isBuiltin(command.getArgs().get(0))) {
-                units.add(new BuiltinUnit(command));
-            } else {
-                units.add(new ExternalUnit(command));
+        for (int i = 0; i < commands.size(); i++) {
+
+            Command cmd = commands.get(i);
+
+            ProcessBuilder pb = new ProcessBuilder(cmd.getArgs());
+            pb.directory(ShellContext.getCurrentDir().toFile());
+
+            // Only last command outputs to terminal
+            if (i == commands.size() - 1) {
+                pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             }
+
+            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+            builders.add(pb);
         }
 
-        // 1️⃣ Start ALL units
-        for (ExecutionUnit unit : units) {
-            unit.start();
-        }
+        // 🔥 THIS handles the entire pipeline
+        List<Process> processes = ProcessBuilder.startPipeline(builders);
 
-        // 2️⃣ Connect pipes
-        for (int i = 0; i < units.size() - 1; i++) {
-            pipe(units.get(i).getStdout(), units.get(i + 1).getStdin());
-        }
-
-        // 3️⃣ Last → terminal
-        pipe(units.get(units.size() - 1).getStdout(), System.out);
-
-        // 4️⃣ Wait
-        for (ExecutionUnit unit : units) {
-            unit.waitFor();
+        // Wait for all
+        for (Process p : processes) {
+            p.waitFor();
         }
     }
 }
