@@ -10,17 +10,19 @@ public class BuiltinUnit implements ExecutionUnit {
 
     private final Command command;
     private final boolean isLast;
+    private final boolean isFirst;
 
     private final PipedInputStream stdoutRead;
     private final PipedOutputStream stdoutWrite;
 
-    private final PipedOutputStream stdinWrite;
-    private final PipedInputStream stdinRead;
+    private PipedOutputStream stdinWrite;
+    private PipedInputStream stdinRead;
 
     private Thread worker;
 
-    public BuiltinUnit(Command command, boolean isLast) throws Exception {
+    public BuiltinUnit(Command command, boolean isFirst, boolean isLast) throws Exception {
         this.command = command;
+        this.isFirst = isFirst;
         this.isLast = isLast;
 
         if (!isLast) {
@@ -31,8 +33,14 @@ public class BuiltinUnit implements ExecutionUnit {
             this.stdoutWrite = null;
         }
 
-        this.stdinRead = new PipedInputStream();
-        this.stdinWrite = new PipedOutputStream(stdinRead);
+        // Only create stdin pipe if not the first command
+        if (!isFirst) {
+            this.stdinRead = new PipedInputStream();
+            this.stdinWrite = new PipedOutputStream(stdinRead);
+        } else {
+            this.stdinRead = null;
+            this.stdinWrite = null;
+        }
     }
 
     @Override
@@ -54,8 +62,11 @@ public class BuiltinUnit implements ExecutionUnit {
                     ps.close();
                 }
 
-                stdinRead.transferTo(OutputStream.nullOutputStream());
-                stdinRead.close();
+                // Drain remaining stdin so upstream doesn't block
+                if (stdinRead != null) {
+                    stdinRead.transferTo(OutputStream.nullOutputStream());
+                    stdinRead.close();
+                }
             } catch (Exception e) {
                 // Broken pipe expected
             }

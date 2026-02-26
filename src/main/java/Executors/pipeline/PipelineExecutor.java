@@ -20,10 +20,11 @@ public class PipelineExecutor {
         for (int i = 0; i < n; i++) {
             Command cmd = commands.get(i);
             String name = cmd.getArgs().get(0);
+            boolean isFirst = (i == 0);
             boolean isLast = (i == n - 1);
 
             if (builtinExecutor.isBuiltin(name)) {
-                units.add(new BuiltinUnit(cmd, isLast));
+                units.add(new BuiltinUnit(cmd, isFirst, isLast));
             } else {
                 units.add(new ExternalUnit(cmd, isLast));
             }
