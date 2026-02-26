@@ -21,28 +21,20 @@ public class CommandParser {
         for (String token : tokens) {
 
             if (token.equals("|")) {
-                Command command = parseSingleCommand(current);
-                if (command != null) {
-
+                if (!current.isEmpty()) {
+                    Command command = parseSingleCommand(new ArrayList<>(current));
                     pipelineCommands.add(command);
-
+                    current.clear();
                 }
-                current.clear();
-
             } else {
                 current.add(token);
             }
         }
 
-        // Add last segment
+        // Add last segment — FIX: actually add it to pipelineCommands!
         if (!current.isEmpty()) {
-            Command command = parseSingleCommand(current);
-            if (command != null) {
-
-                pipelineCommands.add(command);
-
-            }
-            
+            Command command = parseSingleCommand(new ArrayList<>(current));
+            pipelineCommands.add(command);
         }
 
         Command pipeline = new Command();
