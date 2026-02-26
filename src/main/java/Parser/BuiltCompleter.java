@@ -34,20 +34,20 @@ public class BuiltCompleter implements Completer {
             ParsedLine line,
             List<Candidate> candidates) {
 
-        // Word index 0 = command name (first word)
         if (line.wordIndex() == 0) {
+            // Command completion
             String prefix = line.word();
 
             List<String> matches = new ArrayList<>();
 
-            // 1️⃣ Builtins
-            for (String cmd : List.of("echo", "type", "history", "cd", "exit")) {
+            // Builtins
+            for (String cmd : ShellContext.getBuiltins()) {
                 if (cmd.startsWith(prefix)) {
                     matches.add(cmd);
                 }
             }
 
-            // 2️⃣ Executables in PATH
+            // Executables in PATH
             String pathEnv = System.getenv("PATH");
             if (pathEnv != null) {
                 for (String dir : pathEnv.split(File.pathSeparator)) {
@@ -69,9 +69,43 @@ public class BuiltCompleter implements Completer {
 
             Collections.sort(matches);
 
+            if (matches.isEmpty()) {
+                return;
+            }
+
+            // Single match — complete with trailing space
+            if (matches.size() == 1) {
+                lastPrefix = null;
+                tabCount = 0;
+                candidates.add(new Candidate(matches.get(0), matches.get(0), null, null, null, null, true));
+                return;
+            }
+
+            // Multiple matches — track tab presses
+            if (prefix.equals(lastPrefix)) {
+                tabCount++;
+            } else {
+                lastPrefix = prefix;
+                tabCount = 1;
+            }
+
+            String lcp = longestCommonPrefix(matches);
+
+            if (tabCount == 1) {
+                // First TAB: complete to longest common prefix, ring bell
+                if (lcp.length() > prefix.length()) {
+                    // Partial completion available — complete to LCP, no trailing space
+                    candidates.add(new Candidate(lcp, lcp, null, null, null, null, false));
+                }
+                // If LCP == prefix, no candidates → JLine rings bell
+                return;
+            }
+
+            // Second TAB: show all matches
             for (String match : matches) {
                 candidates.add(new Candidate(match, match, null, null, null, null, true));
             }
+
         } else {
             // Argument position — filename completion
             String prefix = line.word();
@@ -89,8 +123,12 @@ public class BuiltCompleter implements Completer {
 
                 Collections.sort(matches);
 
-                for (String match : matches) {
-                    candidates.add(new Candidate(match, match, null, null, null, null, true));
+                if (matches.size() == 1) {
+                    candidates.add(new Candidate(matches.get(0), matches.get(0), null, null, null, null, true));
+                } else {
+                    for (String match : matches) {
+                        candidates.add(new Candidate(match, match, null, null, null, null, true));
+                    }
                 }
             }
         }

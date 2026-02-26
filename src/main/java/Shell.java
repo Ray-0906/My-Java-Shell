@@ -67,6 +67,10 @@ public class Shell {
                 .parser(new DefaultParser().escapeChars(null)) // VERY IMPORTANT
                 .build();
 
+                reader.setOpt(LineReader.Option.AUTO_LIST);
+        reader.unsetOpt(LineReader.Option.LIST_AMBIGUOUS);
+
+
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
          loadHistoryFromFile();
         while (true) {
