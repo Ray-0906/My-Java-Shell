@@ -198,7 +198,8 @@ public class BuiltCompleter implements Completer {
         List<String> matches = new ArrayList<>();
         for (File f : files) {
             if (f.getName().startsWith(filePrefix)) {
-                matches.add(pathPrefix + f.getName());
+                String slash=f.isDirectory() ? "/" : "";
+                matches.add(pathPrefix + f.getName() + slash);
             }
         }
 
