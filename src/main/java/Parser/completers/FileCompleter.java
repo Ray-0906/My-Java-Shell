@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class fileCompleters {
+public class FileCompleters {
     private static int tabCount = 0;
     private static String lastPrefix = null;
 
@@ -33,7 +33,6 @@ public class fileCompleters {
     }
 
     public static void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
-        // Implement file completion logic here
         String prefix = line.word();
 
         // Determine the directory to search and the filename prefix
@@ -70,7 +69,7 @@ public class fileCompleters {
         List<String> matches = new ArrayList<>();
         for (File f : files) {
             if (f.getName().startsWith(filePrefix)) {
-                String slash=f.isDirectory() ? "/" : "";
+                String slash = f.isDirectory() ? "/" : "";
                 matches.add(pathPrefix + f.getName() + slash);
             }
         }
@@ -81,11 +80,12 @@ public class fileCompleters {
         if (matches.size() == 1) {
             tabCount = 0;
             lastPrefix = null;
+            boolean dir = matches.get(0).endsWith("/");
             candidates.add(new Candidate(
                     matches.get(0),
                     matches.get(0),
                     null, null, null, null,
-                    true));
+                    !dir));
             return;
         }
 
@@ -102,6 +102,7 @@ public class fileCompleters {
         String lcp = longestCommonPrefix(matches);
 
         if (lcp.length() > prefix.length()) {
+
             candidates.add(new Candidate(
                     lcp, lcp, null, null, null, null, false));
             tabCount = 0;
