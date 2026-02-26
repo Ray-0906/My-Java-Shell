@@ -209,11 +209,12 @@ public class BuiltCompleter implements Completer {
         if (matches.size() == 1) {
             tabCount = 0;
             lastPrefix = null;
+            boolean dir=matches.get(0).endsWith("/");
             candidates.add(new Candidate(
                     matches.get(0),
                     matches.get(0),
                     null, null, null, null,
-                    true));
+                     !dir));
             return;
         }
 
@@ -230,6 +231,7 @@ public class BuiltCompleter implements Completer {
         String lcp = longestCommonPrefix(matches);
 
         if (lcp.length() > prefix.length()) {
+           
             candidates.add(new Candidate(
                     lcp, lcp, null, null, null, null, false));
             tabCount = 0;
