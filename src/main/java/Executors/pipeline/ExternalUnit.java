@@ -16,11 +16,9 @@ public class ExternalUnit implements ExecutionUnit {
 
     @Override
     public void start() throws Exception {
-
         ProcessBuilder pb = new ProcessBuilder(command.getArgs());
         pb.directory(ShellContext.getCurrentDir().toFile());
         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
         process = pb.start();
     }
 

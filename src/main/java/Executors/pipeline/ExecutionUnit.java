@@ -1,21 +1,15 @@
 package Executors.pipeline;
 
-
-
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface ExecutionUnit {
-    // Set the input stream for this execution unit
 
-    InputStream getStdout();
-    // Set the output stream for this execution unit
-
-    OutputStream getStdin();
-    
     void start() throws Exception;
 
-    // Wait for the execution to complete (if applicable)
+    InputStream getStdout();
+
+    OutputStream getStdin();
 
     void waitFor() throws Exception;
 }
