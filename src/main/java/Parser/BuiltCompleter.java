@@ -22,7 +22,8 @@ public class BuiltCompleter implements Completer {
         for (int i = 1; i < strings.size(); i++) {
             while (!strings.get(i).startsWith(prefix)) {
                 prefix = prefix.substring(0, prefix.length() - 1);
-                if (prefix.isEmpty()) return "";
+                if (prefix.isEmpty())
+                    return "";
             }
         }
 
@@ -34,103 +35,204 @@ public class BuiltCompleter implements Completer {
             ParsedLine line,
             List<Candidate> candidates) {
 
-        if (line.wordIndex() == 0) {
-            // Command completion
-            String prefix = line.word();
+        // Argument position — filename completion
+        if (line.wordIndex() != 0) {
+            completeFilename(reader, line, candidates);
+            return;
+        }
 
-            List<String> matches = new ArrayList<>();
+        // Command position — existing logic unchanged
+        String prefix = line.word();
 
-            // Builtins
-            for (String cmd : ShellContext.getBuiltins()) {
-                if (cmd.startsWith(prefix)) {
-                    matches.add(cmd);
-                }
+        List<String> matches = new ArrayList<>();
+
+        // 1️⃣ Builtins
+        for (String cmd : List.of("echo", "type", "history", "cd", "exit")) {
+            if (cmd.startsWith(prefix)) {
+                matches.add(cmd);
             }
+        }
 
-            // Executables in PATH
-            String pathEnv = System.getenv("PATH");
-            if (pathEnv != null) {
-                for (String dir : pathEnv.split(File.pathSeparator)) {
-                    File folder = new File(dir);
-                    if (folder.isDirectory()) {
-                        File[] files = folder.listFiles();
-                        if (files != null) {
-                            for (File f : files) {
-                                if (f.isFile() && f.canExecute() && f.getName().startsWith(prefix)) {
-                                    if (!matches.contains(f.getName())) {
-                                        matches.add(f.getName());
-                                    }
-                                }
-                            }
+        // 2️⃣ PATH executables
+        String pathEnv = System.getenv("PATH");
+        if (pathEnv != null) {
+            for (String dir : pathEnv.split(":")) {
+                File directory = new File(dir);
+                if (!directory.exists() || !directory.isDirectory())
+                    continue;
+
+                File[] files = directory.listFiles();
+                if (files == null)
+                    continue;
+
+                for (File file : files) {
+                    if (file.isFile() && file.canExecute()) {
+                        String name = file.getName();
+                        if (name.startsWith(prefix)) {
+                            matches.add(name);
                         }
                     }
                 }
             }
+        }
 
-            Collections.sort(matches);
+        // Remove duplicates
+        Set<String> unique = new HashSet<>(matches);
+        matches = new ArrayList<>(unique);
 
-            if (matches.isEmpty()) {
-                return;
-            }
+        Collections.sort(matches);
 
-            // Single match — complete with trailing space
-            if (matches.size() == 1) {
-                lastPrefix = null;
-                tabCount = 0;
-                candidates.add(new Candidate(matches.get(0), matches.get(0), null, null, null, null, true));
-                return;
-            }
+        // ===== HANDLE MULTIPLE MATCHES =====
 
-            // Multiple matches — track tab presses
-            if (prefix.equals(lastPrefix)) {
-                tabCount++;
-            } else {
-                lastPrefix = prefix;
-                tabCount = 1;
-            }
+        if (matches.size() > 1) {
 
             String lcp = longestCommonPrefix(matches);
 
-            if (tabCount == 1) {
-                // First TAB: complete to longest common prefix, ring bell
-                if (lcp.length() > prefix.length()) {
-                    // Partial completion available — complete to LCP, no trailing space
-                    candidates.add(new Candidate(lcp, lcp, null, null, null, null, false));
-                }
-                // If LCP == prefix, no candidates → JLine rings bell
+            // If we can extend the prefix → complete it
+            if (lcp.length() > prefix.length()) {
+
+                candidates.add(new Candidate(
+                        lcp,
+                        lcp,
+                        null,
+                        null,
+                        null,
+                        null,
+                        false // IMPORTANT: no trailing space
+                ));
+
+                tabCount = 0;
+                lastPrefix = null;
                 return;
             }
 
-            // Second TAB: show all matches
-            for (String match : matches) {
-                candidates.add(new Candidate(match, match, null, null, null, null, true));
+            // If no extension possible → fallback to double-tab behavior
+            if (prefix.equals(lastPrefix)) {
+                tabCount++;
+            } else {
+                tabCount = 1;
             }
 
+            lastPrefix = prefix;
+
+            if (tabCount == 1) {
+                reader.getTerminal().writer().print("\u0007");
+                reader.getTerminal().flush();
+            } else if (tabCount == 2) {
+
+                reader.getTerminal().writer().println();
+                reader.getTerminal().writer()
+                        .println(String.join("  ", matches));
+                reader.getTerminal().flush();
+
+                reader.callWidget(LineReader.REDRAW_LINE);
+                reader.callWidget(LineReader.REDISPLAY);
+
+                tabCount = 0;
+            }
+
+            return;
+        }
+
+        // ===== SINGLE MATCH =====
+        if (matches.size() == 1) {
+
+            tabCount = 0;
+            lastPrefix = null;
+
+            candidates.add(new Candidate(
+                    matches.get(0),
+                    matches.get(0),
+                    null,
+                    null,
+                    null,
+                    null,
+                    true));
+            return;
+        }
+
+        // ===== NO MATCH =====
+        tabCount = 0;
+        lastPrefix = null;
+
+        reader.getTerminal().writer().print("\u0007");
+        reader.getTerminal().flush();
+    }
+
+    private void completeFilename(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+        String prefix = line.word();
+
+        File currentDir = ShellContext.getCurrentDir().toFile();
+        File[] files = currentDir.listFiles();
+
+        if (files == null) {
+            reader.getTerminal().writer().print("\u0007");
+            reader.getTerminal().flush();
+            return;
+        }
+
+        List<String> matches = new ArrayList<>();
+        for (File f : files) {
+            if (f.getName().startsWith(prefix)) {
+                matches.add(f.getName());
+            }
+        }
+
+        Collections.sort(matches);
+
+        // Single match — complete with trailing space
+        if (matches.size() == 1) {
+            tabCount = 0;
+            lastPrefix = null;
+            candidates.add(new Candidate(
+                    matches.get(0),
+                    matches.get(0),
+                    null, null, null, null,
+                    true));
+            return;
+        }
+
+        // No match — bell
+        if (matches.isEmpty()) {
+            tabCount = 0;
+            lastPrefix = null;
+            reader.getTerminal().writer().print("\u0007");
+            reader.getTerminal().flush();
+            return;
+        }
+
+        // Multiple matches — same double-tab behavior as commands
+        String lcp = longestCommonPrefix(matches);
+
+        if (lcp.length() > prefix.length()) {
+            candidates.add(new Candidate(
+                    lcp, lcp, null, null, null, null, false));
+            tabCount = 0;
+            lastPrefix = null;
+            return;
+        }
+
+        if (prefix.equals(lastPrefix)) {
+            tabCount++;
         } else {
-            // Argument position — filename completion
-            String prefix = line.word();
+            tabCount = 1;
+        }
 
-            File currentDir = ShellContext.getCurrentDir().toFile();
-            File[] files = currentDir.listFiles();
+        lastPrefix = prefix;
 
-            if (files != null) {
-                List<String> matches = new ArrayList<>();
-                for (File f : files) {
-                    if (f.getName().startsWith(prefix)) {
-                        matches.add(f.getName());
-                    }
-                }
+        if (tabCount == 1) {
+            reader.getTerminal().writer().print("\u0007");
+            reader.getTerminal().flush();
+        } else if (tabCount == 2) {
+            reader.getTerminal().writer().println();
+            reader.getTerminal().writer()
+                    .println(String.join("  ", matches));
+            reader.getTerminal().flush();
 
-                Collections.sort(matches);
+            reader.callWidget(LineReader.REDRAW_LINE);
+            reader.callWidget(LineReader.REDISPLAY);
 
-                if (matches.size() == 1) {
-                    candidates.add(new Candidate(matches.get(0), matches.get(0), null, null, null, null, true));
-                } else {
-                    for (String match : matches) {
-                        candidates.add(new Candidate(match, match, null, null, null, null, true));
-                    }
-                }
-            }
+            tabCount = 0;
         }
     }
 }
