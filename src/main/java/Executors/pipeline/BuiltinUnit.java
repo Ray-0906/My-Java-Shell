@@ -9,6 +9,7 @@ import java.io.*;
 public class BuiltinUnit implements ExecutionUnit {
 
     private final Command command;
+    private final boolean isLast;
 
     private final PipedInputStream stdoutRead;
     private final PipedOutputStream stdoutWrite;
@@ -18,14 +19,18 @@ public class BuiltinUnit implements ExecutionUnit {
 
     private Thread worker;
 
-    public BuiltinUnit(Command command) throws Exception {
+    public BuiltinUnit(Command command, boolean isLast) throws Exception {
         this.command = command;
+        this.isLast = isLast;
 
-        // Stdout pipe: builtin writes to stdoutWrite, downstream reads from stdoutRead
-        this.stdoutRead = new PipedInputStream();
-        this.stdoutWrite = new PipedOutputStream(stdoutRead);
+        if (!isLast) {
+            this.stdoutRead = new PipedInputStream();
+            this.stdoutWrite = new PipedOutputStream(stdoutRead);
+        } else {
+            this.stdoutRead = null;
+            this.stdoutWrite = null;
+        }
 
-        // Stdin pipe: upstream writes to stdinWrite, builtin reads from stdinRead
         this.stdinRead = new PipedInputStream();
         this.stdinWrite = new PipedOutputStream(stdinRead);
     }
@@ -34,20 +39,25 @@ public class BuiltinUnit implements ExecutionUnit {
     public void start() {
         worker = new Thread(() -> {
             try {
-                PrintStream ps = new PrintStream(stdoutWrite, true);
-                ShellIo io = new ShellIo(ps, System.err);
+                PrintStream ps;
+                if (isLast) {
+                    ps = System.out;
+                } else {
+                    ps = new PrintStream(stdoutWrite, true);
+                }
 
+                ShellIo io = new ShellIo(ps, System.err);
                 BuiltinExecutor.getInstance().execute(command, io);
 
-                ps.flush();
-                ps.close();
+                if (!isLast) {
+                    ps.flush();
+                    ps.close();
+                }
 
-                // Drain any remaining stdin so upstream doesn't block
                 stdinRead.transferTo(OutputStream.nullOutputStream());
                 stdinRead.close();
-
             } catch (Exception e) {
-                // Broken pipe is expected if downstream closes early
+                // Broken pipe expected
             }
         });
         worker.start();
@@ -55,6 +65,7 @@ public class BuiltinUnit implements ExecutionUnit {
 
     @Override
     public InputStream getStdout() {
+        if (isLast) return null;
         return stdoutRead;
     }
 
