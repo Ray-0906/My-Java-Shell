@@ -5,7 +5,9 @@ import IO.ShellIo;
 import ShellContext.ShellContext;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.List;
 
 public class historyCommand {
@@ -16,6 +18,13 @@ public class historyCommand {
         if (args.size() >= 3 && args.get(1).equals("-r")) {
             String filePath = args.get(2);
             readHistoryFromFile(filePath);
+            return;
+        }
+
+        // history -w <file> — write history to file
+        if (args.size() >= 3 && args.get(1).equals("-w")) {
+            String filePath = args.get(2);
+            writeHistoryToFile(filePath);
             return;
         }
 
@@ -47,7 +56,6 @@ public class historyCommand {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // Skip empty lines
                 if (line.trim().isEmpty()) {
                     continue;
                 }
@@ -55,6 +63,18 @@ public class historyCommand {
             }
         } catch (Exception e) {
             // File not found or read error — ignore
+        }
+    }
+
+    private static void writeHistoryToFile(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            List<String> history = ShellContext.getHistory();
+            for (String entry : history) {
+                writer.write(entry);
+                writer.newLine();
+            }
+        } catch (Exception e) {
+            // Write error — ignore
         }
     }
 }
