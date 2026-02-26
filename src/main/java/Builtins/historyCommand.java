@@ -27,6 +27,12 @@ public class historyCommand {
             writeHistoryToFile(filePath);
             return;
         }
+      // history -a <file> — append history to file
+        if (args.size() >= 3 && args.get(1).equals("-a")) {
+            String filePath = args.get(2);
+            appendHistoryToFile(filePath);
+            return;
+        }
 
         // history [n] — display history
         List<String> history = ShellContext.getHistory();
@@ -77,4 +83,17 @@ public class historyCommand {
             // Write error — ignore
         }
     }
+
+    private static void appendHistoryToFile(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            List<String> history = ShellContext.getHistory();
+            for (String entry : history) {
+                writer.write(entry);
+                writer.newLine();
+            }
+        } catch (Exception e) {
+            // Write error — ignore
+        }
+    }
+
 }
