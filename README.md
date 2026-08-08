@@ -1,83 +1,126 @@
-# Build Your Own Shell — Java
+# 🐚 JShell — POSIX-Compliant Unix Shell in Java
 
-[![progress-banner](https://backend.codecrafters.io/progress/shell/b35f6e8d-d4a1-4012-98be-ea5db8746208)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
+[![Java](https://img.shields.io/badge/Java-21%2B-orange.svg)](https://www.oracle.com/java/)
+[![Build Tool](https://img.shields.io/badge/Build-Maven-blue.svg)](https://maven.apache.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A fully functional POSIX-compliant shell built in Java as part of the [CodeCrafters "Build Your Own Shell" Challenge](https://app.codecrafters.io/courses/shell/overview). This shell supports built-in commands, external program execution, pipelines, I/O redirection, command history, and tab completion.
+A lightweight, high-performance, POSIX-compliant Unix shell built from scratch in Java. **JShell** features a custom lexer/parser pipeline, hybrid process & thread-based execution engine for multi-stage pipelines, I/O redirection, autocompletion via Longest Common Prefix (LCP), and persistent session history.
 
 ---
 
-## Features
+## 🌟 Key Features
 
-### Built-in Commands
+### 🛠️ Built-in Commands (In-Process Execution)
 | Command | Description |
 |---------|-------------|
-| `echo` | Print arguments to stdout |
-| `cd` | Change current working directory (supports `~` for home) |
-| `pwd` | Print current working directory |
-| `type` | Display whether a command is a builtin or external |
-| `history` | Display command history with optional `<n>` limit |
-| `exit` | Exit the shell (saves history to `HISTFILE`) |
+| `echo` | Print text to standard output with quote stripping & escape evaluation |
+| `cd` | Change directory (supports relative paths, absolute paths, and `~` home directory) |
+| `pwd` | Print absolute path of current working directory |
+| `type` | Inspect whether a command is a shell builtin or locate its executable in `PATH` |
+| `history` | Display session history, last `N` entries, or file I/O (`-r`, `-w`, `-a`) |
+| `exit` | Terminate shell session with custom exit status and auto-save history |
 
-### Pipelines
-- **Dual-command pipelines** — `cat file.txt | wc`
-- **Multi-command pipelines** — `cat file | head -n 3 | wc`
-- **Pipelines with built-ins** — `echo hello | wc`, `ls | type exit`
-- **Long-running pipelines** — `tail -f file | head -n 5` (auto-terminates upstream)
-- External-only pipelines use `ProcessBuilder.startPipeline()` for OS-native pipe handling
-- Mixed pipelines (builtins + externals) use a thread-based `ExecutionUnit` abstraction
+### 🔀 Hybrid Pipeline Engine
+- **Native OS Pipelines**: Uses Java's `ProcessBuilder.startPipeline()` for all-external process chains (`cat file.txt | grep error | wc -l`).
+- **Thread-Piped Builtins**: Hybrid pipelines involving shell builtins (`echo "data" | wc -w`) use an `ExecutionUnit` Strategy pattern backed by `PipedInputStream`/`PipedOutputStream` worker threads and non-blocking stream copy routines.
+- **Upstream Lifecycle Management**: Long-running upstream stages (`tail -f log | head -n 5`) are automatically terminated via `SIGKILL` once downstream stages exit.
 
-### I/O Redirection
-- Stdout redirect: `echo hello > file.txt`
-- Stdout append: `echo hello >> file.txt`
-- Stderr redirect: `echo hello 2> error.txt`
-- Stderr append: `echo hello 2>> error.txt`
+### 🔄 Standard I/O Redirection
+- **Stdout Overwrite / Append**: `echo hello > out.txt`, `echo world >> out.txt`
+- **Stderr Overwrite / Append**: `ls /invalid 2> err.log`, `ls /invalid 2>> err.log`
+- Clean stream abstraction (`ShellIo`) decoupling command logic from underlying file/pipe streams.
 
-### Command History
-- `history` — show full history
-- `history <n>` — show last n entries
-- `history -r <file>` — read/append history from file into memory
-- `history -w <file>` — write in-memory history to file
-- `history -a <file>` — append only new commands since last flush
-- **Startup loading** — reads history from `HISTFILE` environment variable on launch
-- **Exit saving** — writes in-memory history to `HISTFILE` on `exit`
-- **Up/Down arrow navigation** — powered by JLine
+### 🔤 Lexical Analysis & POSIX Quoting
+- Finite State Machine (FSM) lexer handling:
+  - Single quotes `'...'`: Everything literal, no escaping.
+  - Double quotes `"..."`: Preserves whitespace, allows backslash escapes.
+  - Backslash escaping `\`: Outside quotes and inside double quotes.
 
-### Tab Completion
-- **Command completion** — completes built-in commands and PATH executables
-- **Partial completion** — completes to the longest common prefix when multiple matches exist
-- **Double-tab listing** — shows all matches on second TAB press (with bell on first)
-- **Filename completion** — completes filenames in current directory
-- **Nested path completion** — completes filenames in subdirectories (e.g., `path/to/f<TAB>`)
+### ⌨️ Interactive Terminal & Tab Completion
+- Powered by JLine 3 in raw terminal mode.
+- **Context-Aware Autocompletion**:
+  - **First Token**: Completes built-in commands & executables discovered across system `PATH`.
+  - **Arguments**: Completes file and directory paths (including nested subdirectories `dir/sub/f<TAB>`).
+- **Smart Completion Rules**:
+  - Auto-completes up to the **Longest Common Prefix (LCP)** on partial matches.
+  - Terminal bell (`\u0007`) on first `TAB` when no further prefix can be completed.
+  - Formatted double-`TAB` candidate listing.
+
+### 📜 Persistent History Engine
+- **Interactive Navigation**: Up/Down arrow key history traversal.
+- **Startup & Shutdown Persistence**: Loads from `$HISTFILE` on boot and flushes on `exit`.
+- **Watermark Flushing**: `history -a <file>` uses an internal index watermark to incrementally append *only* newly typed commands since last flush.
 
 ---
 
-## Project Structure
+## 🏗️ Architecture Overview
+
+```
+User Input ("cat file.txt | grep error > out.txt")
+                       │
+                       ▼
+            ┌─────────────────────┐
+            │   Shell REPL Loop   │ (JLine LineReader)
+            └──────────┬──────────┘
+                       │
+                       ▼
+            ┌─────────────────────┐
+            │      Tokenizer      │ Lexical Analysis (FSM)
+            └──────────┬──────────┘
+                       │
+                       ▼
+            ┌─────────────────────┐
+            │    CommandParser    │ Syntax Analysis & Pipeline Construction
+            └──────────┬──────────┘
+                       │
+                       ▼
+            ┌─────────────────────┐
+            │   CommandExecutor   │ Router / Dispatcher
+            └──────────┬──────────┘
+                       │
+             ┌─────────┴─────────┐
+             ▼                   ▼
+    ┌─────────────────┐ ┌──────────────────┐
+    │ Single Command  │ │ PipelineExecutor │
+    └────────┬────────┘ └────────┬─────────┘
+             │                   │
+      ┌──────┴──────┐     ┌──────┴─────────────┐
+      ▼             ▼     ▼                    ▼
+┌───────────┐ ┌──────────┐ ┌──────────────┐ ┌─────────────┐
+│  Builtin  │ │ External │ │ ExternalUnit │ │ BuiltinUnit │
+│ Executor  │ │ Executor │ │ (Process)    │ │ (Thread)    │
+└───────────┘ └──────────┘ └──────────────┘ └─────────────┘
+```
+
+---
+
+## 📂 Project Structure
 
 ```
 src/main/java/
-├── Main.java                        # Entry point
-├── Shell.java                       # Main REPL loop (JLine integration)
+├── Main.java                        # Application entry point
+├── Shell.java                       # Main REPL loop & JLine integration
 │
 ├── Model/
-│   └── Command.java                 # Command model (args, redirects, pipeline)
+│   └── Command.java                 # Command AST (arguments, redirection, pipeline)
 │
 ├── Parser/
-│   ├── Tokenizer.java               # Input tokenization (quotes, escaping)
-│   ├── CommandParser.java           # Parse tokens into Command objects
-│   ├── BuiltCompleter.java          # Tab completion (commands + filenames)
+│   ├── Tokenizer.java               # POSIX state machine tokenizer
+│   ├── CommandParser.java           # Command & pipeline parser
+│   ├── BuiltCompleter.java          # JLine completion delegate router
 │   └── completers/
-│       ├── CommandCompleter.java     # Command name completion
-│       └── FileCompleter.java        # Filename completion
+│       ├── CommandCompleter.java    # Executable & builtin autocompleter
+│       └── FileCompleter.java       # Path & nested directory autocompleter
 │
 ├── Executors/
-│   ├── CommandExecutor.java         # Routes commands (single vs pipeline)
-│   ├── BuiltinExecutor.java         # Dispatches to builtin handlers
-│   ├── ExternalExecutor.java        # Runs external programs via ProcessBuilder
+│   ├── CommandExecutor.java         # Central command router
+│   ├── BuiltinExecutor.java         # In-process builtin dispatcher
+│   ├── ExternalExecutor.java        # ProcessBuilder executor for external OS binaries
 │   └── pipeline/
-│       ├── ExecutionUnit.java        # Interface for pipeline stages
-│       ├── ExternalUnit.java         # External command pipeline stage
-│       ├── BuiltinUnit.java          # Builtin command pipeline stage
-│       └── PipelineExecutor.java     # Orchestrates pipeline execution
+│       ├── ExecutionUnit.java       # Unified pipeline stage interface (Strategy Pattern)
+│       ├── ExternalUnit.java        # Process-backed pipeline stage
+│       ├── BuiltinUnit.java         # Thread & pipe-backed pipeline stage
+│       └── PipelineExecutor.java    # Pipeline lifecycle orchestrator
 │
 ├── Builtins/
 │   ├── EchoCommand.java             # echo implementation
@@ -88,114 +131,85 @@ src/main/java/
 │   └── historyCommand.java          # history implementation
 │
 ├── IO/
-│   └── ShellIo.java                 # Abstracted stdout/stderr streams
+│   └── ShellIo.java                 # Standard I/O stream abstraction wrapper
 │
 └── ShellContext/
-    └── ShellContext.java             # Global state (cwd, history, builtins)
+    └── ShellContext.java            # Thread-safe global shell state (CWD, history)
 ```
 
 ---
 
-## Tech Stack
-
-- **Language:** Java 25 (with preview features)
-- **Build Tool:** Maven
-- **Dependencies:** [JLine 3.25.1](https://github.com/jline/jline3) — terminal handling, line editing, tab completion
-
----
-
-## How to Run
+## 🚀 Getting Started
 
 ### Prerequisites
-- Java 25+
-- Maven (`mvn`)
+- **Java JDK**: Version 21 or higher
+- **Build Tool**: Apache Maven (`mvn`)
 
-### Build & Run
+### Building the Project
 
-```sh
-# Build the project
-mvn -B package -Ddir=.
+```bash
+# Clone the repository
+git clone https://github.com/your-username/My-Java-Shell.git
+cd My-Java-Shell
 
-# Run the shell
+# Build fat JAR with Maven
+mvn package -Ddir=target
+```
+
+### Running the Shell
+
+#### On Linux / macOS / Git Bash:
+```bash
 ./my_shell.sh
 ```
 
-Or run directly:
-
-```sh
-java --enable-preview -jar codecrafters-shell.jar
+#### On Windows (PowerShell):
+```powershell
+.\.myshell.ps1
 ```
 
-### With History File
-
-```sh
-HISTFILE=~/.my_shell_history ./my_shell.sh
+#### Running Directly via Java:
+```bash
+java --enable-native-access=ALL-UNNAMED --enable-preview -jar target/codecrafters-shell.jar
 ```
 
-### Run CodeCrafters Tests
-
-```sh
-codecrafters submit
+#### With Custom History File:
+```bash
+HISTFILE=~/.my_shell_history java --enable-preview -jar target/codecrafters-shell.jar
 ```
 
 ---
 
-## Architecture
+## 🧪 Example Usage
 
+```bash
+my-shell> echo "Hello, World!"
+Hello, World!
+
+my-shell> pwd
+/home/user/projects
+
+my-shell> type echo
+echo is a shell builtin
+
+my-shell> type ls
+ls is /usr/bin/ls
+
+my-shell> cat file.txt | grep "ERROR" | wc -l
+42
+
+my-shell> echo "Log entry" >> app.log
+
+my-shell> history 5
+    1  echo "Hello, World!"
+    2  pwd
+    3  type echo
+    4  type ls
+    5  cat file.txt | grep "ERROR" | wc -l
 ```
-User Input
-    │
-    ▼
-Shell (JLine LineReader)
-    │
-    ▼
-Tokenizer ──► CommandParser ──► Command
-                                    │
-                        ┌───────────┴───────────┐
-                        ▼                       ▼
-                   Single Command           Pipeline
-                        │                       │
-                        ▼                       ▼
-                CommandExecutor          PipelineExecutor
-                   │         │            │            │
-                   ▼         ▼            ▼            ▼
-             Builtin    External    ExternalUnit  BuiltinUnit
-             Executor   Executor   (ProcessBuilder) (Thread)
-```
-
-### Pipeline Design
-
-| Scenario | Implementation |
-|----------|---------------|
-| All external (`cat \| wc`) | `ProcessBuilder.startPipeline()` — OS-native pipes |
-| Mixed (`echo hi \| wc`) | `ExecutionUnit` abstraction with pipe threads |
-| Long-running (`tail -f \| head`) | Last process waited first, upstream destroyed |
 
 ---
 
-## Completed Stages
+## 📄 License
 
-- Shell REPL with prompt
-- Built-in commands: `echo`, `type`, `exit`, `pwd`, `cd`
-- External command execution via PATH lookup
-- Quoting (single quotes, double quotes, backslash escaping)
-- Stdout/Stderr redirection (`>`, `>>`, `2>`, `2>>`)
-- Dual-command pipelines
-- Multi-command pipelines
-- Pipelines with built-in commands
-- Command completion (TAB)
-- Partial completions (longest common prefix)
-- Multiple completions (double-TAB listing)
-- Filename completion
-- Nested path filename completion
-- History builtin (`history`, `history <n>`)
-- History navigation (Up/Down arrow)
-- History file: read (`-r`), write (`-w`), append (`-a`)
-- History load on startup (`HISTFILE`)
-- History save on exit
-
----
-
-## License
-
-This project was built as part of the [CodeCrafters](https://codecrafters.io) challenge.
+This project is open-source software licensed under the [MIT License](LICENSE).

@@ -52,7 +52,9 @@ public class BuiltinUnit implements ExecutionUnit {
                 } else {
                     ps = new PrintStream(stdoutWrite, true);
                 }
-
+                  //  the outputstream of the stdout pipe is wrapped in Printstream  and then used as shellio for builtin processes
+                  // whenever built in processes write anything to the outputstream of the stdout it appears in the stdout pipe other end which is stdinread(pipedInput stream)
+                  //stdinread(pipedInput stream)  transfer bytes  to downstream process whenever  later when conntect via (srt.transferTo(dst))
                 ShellIo io = new ShellIo(ps, System.err);
                 BuiltinExecutor.getInstance().execute(command, io);
 
@@ -62,7 +64,9 @@ public class BuiltinUnit implements ExecutionUnit {
                 }
 
                 if (stdinRead != null) {
-                    stdinRead.transferTo(OutputStream.nullOutputStream());
+                    // stdinread is the other in of the input pipe the stdinWrite is the end which connects to upstream thread as dst
+                    // so as the pipe maybe full and upstrream may get blocked so .. stdinread (other end of ip pipe) transfer the stream to null output stream 
+                    stdinRead.transferTo(OutputStream.nullOutputStream());  
                     stdinRead.close();
                 }
             } catch (Exception e) {

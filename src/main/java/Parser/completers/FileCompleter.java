@@ -33,6 +33,7 @@ public class FileCompleter {
     }
 
     public static void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+        // line.word() returns current word being completed 
         String prefix = line.word();
 
         // Determine the directory to search and the filename prefix
@@ -69,7 +70,7 @@ public class FileCompleter {
         List<String> matches = new ArrayList<>();
         for (File f : files) {
             if (f.getName().startsWith(filePrefix)) {
-                String slash = f.isDirectory() ? "/" : "";
+                String slash = f.isDirectory() ? "/" : ""; // Append a slash if it's a directory
                 matches.add(pathPrefix + f.getName() + slash);
             }
         }
@@ -85,7 +86,7 @@ public class FileCompleter {
                     matches.get(0),
                     matches.get(0),
                     null, null, null, null,
-                    !dir));
+                    !dir)); // if it's a directory, don't add a space after completion
             return;
         }
 
@@ -93,7 +94,7 @@ public class FileCompleter {
         if (matches.isEmpty()) {
             tabCount = 0;
             lastPrefix = null;
-            reader.getTerminal().writer().print("\u0007");
+            reader.getTerminal().writer().print("\u0007"); // this is to play a beep sound on terminal to indicate that there are no matches
             reader.getTerminal().flush();
             return;
         }
@@ -101,17 +102,17 @@ public class FileCompleter {
         // Multiple matches — same double-tab behavior as commands
         String lcp = longestCommonPrefix(matches);
 
-        if (lcp.length() > prefix.length()) {
-
+        if (lcp.length() > prefix.length()) { 
+        // If we can extend the prefix → complete it (all the matches share a common prefix longer than the current prefix)
             candidates.add(new Candidate(
-                    lcp, lcp, null, null, null, null, false));
+                    lcp, lcp, null, null, null, null, false));  
             tabCount = 0;
             lastPrefix = null;
             return;
         }
 
         if (prefix.equals(lastPrefix)) {
-            tabCount++;
+            tabCount++; // happens only for the second tab press without changing the prefix, so tabCount will be 2 here
         } else {
             tabCount = 1;
         }
@@ -119,14 +120,15 @@ public class FileCompleter {
         lastPrefix = prefix;
 
         if (tabCount == 1) {
-            reader.getTerminal().writer().print("\u0007");
-            reader.getTerminal().flush();
+            reader.getTerminal().writer().print("\u0007");  // bell sound to indicate multiple matches
+            reader.getTerminal().flush();  
         } else if (tabCount == 2) {
+            // Print all matches on a new line, separated by two spaces on new line, and then redraw the input line
             reader.getTerminal().writer().println();
             reader.getTerminal().writer()
                     .println(String.join("  ", matches));
             reader.getTerminal().flush();
-
+                 // Redraw the input line after printing matches
             reader.callWidget(LineReader.REDRAW_LINE);
             reader.callWidget(LineReader.REDISPLAY);
 

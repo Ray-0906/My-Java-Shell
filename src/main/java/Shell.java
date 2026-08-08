@@ -71,7 +71,7 @@ public class Shell {
         ShellContext.setCurrentDir(Paths.get(System.getProperty("user.dir")));
          loadHistoryFromFile();
         while (true) {
-            String input = reader.readLine("$ ");
+            String input = reader.readLine("my-shell> ");
             ShellContext.addToHistory(input);
             executeCommand(input);
 

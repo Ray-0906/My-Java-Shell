@@ -31,6 +31,7 @@ public class ExternalExecutor {
                     pb.redirectOutput(file); // overwrite
                 }
             } else {
+                
                 pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
             }
             // Handle stderr redirection

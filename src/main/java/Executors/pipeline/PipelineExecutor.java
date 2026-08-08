@@ -94,8 +94,8 @@ public class PipelineExecutor {
 
             Thread t = new Thread(() -> {
                 try {
-                    src.transferTo(dst);
-                    dst.close();
+                    src.transferTo(dst);  // this line set the pipe prevStdout -> nextStdin   and the thread keeps doing it 
+                    dst.close();  // when the src closes with EOF .. then dst has know way to know so.. it must close otherwise it cause the next thread/process to hang indefinately
                 } catch (IOException e) {
                     // Broken pipe — expected
                 }
@@ -103,14 +103,17 @@ public class PipelineExecutor {
             t.start();
             pipeThreads.add(t);
         }
-
+        // mechanism is downstreams stdin closes when  upstreams terminates .. and as the process/threads are blocking by io keeping the whole flow syncronized
+        // even though each threads run concurrently it stays blocks until input is rcved from upstream process/thread 
+        // and upstream process/thread stays block due to pipe(buffer) full if no one is consuming from the pipe ..
+        // this makes the sure the correct sequencing in the concurrent processes 
         // 4. If last is builtin, pipe stdout to System.out
         ExecutionUnit lastUnit = units.get(n - 1);
         if (lastUnit.getStdout() != null) {
             Thread lastOut = new Thread(() -> {
                 try {
                     InputStream src = lastUnit.getStdout();
-                    src.transferTo(System.out);
+                    src.transferTo(System.out);  // 
                     System.out.flush();
                 } catch (IOException e) {
                     // ignore
